@@ -1267,21 +1267,8 @@ function addSpecialToCalendar(id){
   'STATUS:CONFIRMED',
   'END:VEVENT','END:VCALENDAR',''
  ].join('\r\n');
- // iOS Safari 会拦截 data: 网址的跳转，改用 Blob 网址（text/calendar 会弹出「添加到日历」）
- const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
- const fileName=(r.title||'special-day').replace(/[\\/:*?"<>|]/g,'_')+'.ics';
- // 方案一：iPhone 分享菜单（需要 https 网址），在菜单里选「日历」即可添加
- try{
-  const file=new File([blob],fileName,{type:'text/calendar'});
-  if(navigator.canShare&&navigator.canShare({files:[file]})){
-   navigator.share({files:[file],title:title}).catch(()=>{});
-   return;
-  }
- }catch(e){}
- // 方案二：Blob 网址，Safari 会弹出「添加到日历」
- const url=URL.createObjectURL(blob);
- window.location.href=url;
- setTimeout(()=>URL.revokeObjectURL(url),60000);
+ const calendarUrl='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics);
+ window.location.href=calendarUrl;
 }
 
 function specialDateParts(dateStr){
