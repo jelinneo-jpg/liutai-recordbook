@@ -1245,34 +1245,47 @@ function deleteCustomRecord(id){if(confirm('确定删除这条记录吗？')){re
 function addSpecialToCalendar(id){
  const r=records.find(x=>x.id===id); if(!r||!r.date)return;
  const d=r.date.replaceAll('-','');
+ // Parse as local calendar numbers. Do NOT pass an 8-digit YYYYMMDD string to Date(),
+ // because Safari can interpret it as a year-sized value and create a year-long event.
  const yy=Number(r.date.slice(0,4)), mm=Number(r.date.slice(5,7)), dd=Number(r.date.slice(8,10));
  const next=new Date(yy,mm-1,dd+1);
  const end=`${next.getFullYear()}${String(next.getMonth()+1).padStart(2,'0')}${String(next.getDate()).padStart(2,'0')}`;
  const kind=r.specialType==='birthday'?'生日':'纪念日';
  const title=`${kind} - ${r.title}`;
  const desc=r.notes||'';
- const escIcs=v=>String(v||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');
  const ics=[
-  'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//My Record Book//ZH-CN','CALSCALE:GREGORIAN','METHOD:PUBLISH',
+  'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//My Record Book//ZH-CN','CALSCALE:GREGORIAN',
   'BEGIN:VEVENT',
   'UID:'+String(r.id||('special-'+d))+'@my-record-book',
   'DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,''),
   'DTSTART;VALUE=DATE:'+d,
   'DTEND;VALUE=DATE:'+end,
   'RRULE:FREQ=YEARLY;INTERVAL=1',
-  'SUMMARY:'+escIcs(title),
-  ...(desc?['DESCRIPTION:'+escIcs(desc)]:[]),
-  'TRANSP:TRANSPARENT','STATUS:CONFIRMED',
+  'SUMMARY:'+title.replace(/([,;\\])/g,'\\$1'),
+  ...(desc?['DESCRIPTION:'+desc.replace(/\n/g,'\\n').replace(/([,;\\])/g,'\\$1')]:[]),
+  'TRANSP:TRANSPARENT',
+  'STATUS:CONFIRMED',
   'END:VEVENT','END:VCALENDAR',''
  ].join('\r\n');
-
- // iPhone Safari: do not use <a download>. That only keeps downloading another .ics file.
- // Open the calendar MIME content directly so iOS can hand it to the Calendar import screen.
+ const fileName=(r.title||'特别日子').replace(/[\\/:*?\"<>|]/g,'_')+'.ics';
+ const file=new File([ics],fileName,{type:'text/calendar'});
+ const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+ if(isIOS && navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
+   navigator.share({files:[file]}).catch(err=>{
+     if(err && err.name!=='AbortError') alert('无法打开日历分享，请再试一次。');
+   });
+   return;
+ }
  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
  const url=URL.createObjectURL(blob);
- window.location.assign(url);
- setTimeout(()=>URL.revokeObjectURL(url),60000);
+ const a=document.createElement('a');
+ a.href=url;
+ a.download=fileName;
+ document.body.appendChild(a);
+ a.click();
+ setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},10000);
 }
+
 function specialDateParts(dateStr){
  const d=new Date((dateStr||'')+'T00:00:00');
  if(isNaN(d))return {day:'--',mon:'---'};
