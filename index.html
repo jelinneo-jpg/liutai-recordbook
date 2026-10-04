@@ -1241,7 +1241,7 @@ function addSpecialToCalendar(id){
  const ics=[
   'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//My Record Book//ZH-CN','CALSCALE:GREGORIAN',
   'BEGIN:VEVENT',
-  'UID:'+Date.now()+'@my-record-book',
+  'UID:'+String(r.id||('special-'+d))+'@my-record-book',
   'DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,''),
   'DTSTART;VALUE=DATE:'+d,
   'DTEND;VALUE=DATE:'+end,
@@ -1254,9 +1254,13 @@ function addSpecialToCalendar(id){
  ].join('\r\n');
  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
  const url=URL.createObjectURL(blob);
- const a=document.createElement('a');a.href=url;a.download=(r.title||'特别日子')+'.ics';
- document.body.appendChild(a);a.click();a.remove();
- setTimeout(()=>URL.revokeObjectURL(url),2000);
+ const a=document.createElement('a');
+ a.href=url;
+ a.download=(r.title||'特别日子').replace(/[\\/:*?\"<>|]/g,'_')+'.ics';
+ a.type='text/calendar';
+ document.body.appendChild(a);
+ a.click();
+ setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},10000);
 }
 
 function specialDateParts(dateStr){
