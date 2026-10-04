@@ -290,6 +290,21 @@ button[onclick*="deletePage"]{
 /* 备忘录副本：移除外面独立的「删除页面」按钮；删除功能保留在原有小白菜单内 */
 #memoDeleteTopBtn{display:none !important;}
 
+
+/* V-calendar-fixed-shopping-card - 购物清单参考工作列表白色大卡片 */
+.shoppingWorkCard{background:var(--card);border:1px solid rgba(226,210,188,.85);border-radius:22px;padding:18px 16px 22px;box-shadow:0 5px 16px rgba(83,62,37,.06);margin-top:2px}
+.shoppingWorkHead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:13px;border-bottom:1px dashed #e7d8c3}
+.shoppingWorkTitle{font-size:19px;font-weight:800;line-height:1.25}
+.shoppingWorkDate{font-size:13px;color:var(--muted);margin-top:5px}
+.shoppingWorkBadge{white-space:nowrap;background:#fff0b9;color:#7b6330;border-radius:999px;padding:6px 10px;font-size:12px}
+.shoppingWorkSection{margin-top:18px}
+.shoppingWorkSectionHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.shoppingWorkSectionHead h3{margin:0;font-size:18px}
+.shoppingWorkSubsection{margin-top:15px}
+.shoppingWorkSubsection h3{margin:0 0 9px;font-size:17px}
+.shoppingWorkEmpty{color:var(--muted);font-size:14px;padding:4px 0 8px}
+.shoppingWorkCard .card{background:#fffdf8}
+
 </style>
 </head>
 <body>
@@ -1314,7 +1329,10 @@ function render(){
    const kitchenPending=pending.filter(isKitchen);
    const myPending=pending.filter(r=>!isKitchen(r));
    const section=(title,items,emptyText)=>`<div style="margin-top:14px"><h3 style="margin:0 0 9px">${title} <span class="count">${items.length}</span></h3>${items.map(item).join('')||`<div class="note" style="color:var(--muted)">${emptyText}</div>`}</div>`;
-   $('list').innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><h3 style="margin:0">未完成 <span class="count">${pending.length}</span></h3>${pending.length?'<button class="smallBtn" style="padding:7px 11px;border-radius:11px" onclick="shareShoppingWhatsApp()">📤 发送清单</button>':''}</div>${section('🍳 刘太厨房',kitchenPending,'还没有从刘太厨房加入食材')}${section('🛒 我的购物清单',myPending,'还没有自己添加的物品')}<div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px"><h3 style="margin:0">已完成 ✅ <span class="count">${done.length}</span></h3>${done.length?'<button class="smallBtn" style="padding:7px 11px;border-radius:11px" onclick="deleteAllCompletedShopping()">🗑️ 一键删除</button>':''}</div>${done.map(item).join('')||'<div class="note">还没有完成物品</div>'}`;
+   const now=new Date();
+   const shoppingDate=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} 星期${'日一二三四五六'[now.getDay()]}`;
+   const shoppingSection=(title,items,emptyText)=>`<div class="shoppingWorkSubsection"><h3>${title} <span class="count">${items.length}</span></h3>${items.map(item).join('')||`<div class="shoppingWorkEmpty">${emptyText}</div>`}</div>`;
+   $('list').innerHTML=`<div class="shoppingWorkCard"><div class="shoppingWorkHead"><div><div class="shoppingWorkTitle">🛒 今日购物</div><div class="shoppingWorkDate">${shoppingDate}</div></div><div class="shoppingWorkBadge">未完成 ${pending.length}</div></div><div class="shoppingWorkSection"><div class="shoppingWorkSectionHead"><h3>未完成 <span class="count">${pending.length}</span></h3>${pending.length?'<button class="smallBtn" style="padding:7px 11px;border-radius:11px" onclick="shareShoppingWhatsApp()">📤 发送清单</button>':''}</div>${shoppingSection('🍳 刘太厨房',kitchenPending,'还没有从刘太厨房加入食材')}${shoppingSection('🛒 我的购物清单',myPending,'还没有自己添加的物品')}</div><div class="shoppingWorkSection"><div class="shoppingWorkSectionHead"><h3>已完成 ✅ <span class="count">${done.length}</span></h3>${done.length?'<button class="smallBtn" style="padding:7px 11px;border-radius:11px" onclick="deleteAllCompletedShopping()">🗑️ 一键删除</button>':''}</div>${done.map(item).join('')||'<div class="shoppingWorkEmpty">还没有完成物品</div>'}</div></div>`;
   }else{
    $('list').innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><h3 style="margin:0">未完成 <span class="count">${pending.length}</span></h3>${pending.length?'<button class="smallBtn" style="padding:7px 11px;border-radius:11px" onclick="shareShoppingWhatsApp()">📤 发送清单</button>':''}</div>${pending.map(item).join('')||`<div class="note">${esc(cp?.name||'购物清单')}完成啦 🎉</div>`}<div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px"><h3 style="margin:0">已完成 ✅ <span class="count">${done.length}</span></h3>${done.length?'<button class="smallBtn" style="padding:7px 11px;border-radius:11px" onclick="deleteAllCompletedShopping()">🗑️ 一键删除</button>':''}</div>${done.map(item).join('')||'<div class="note">还没有完成物品</div>'}`;
   }
