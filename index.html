@@ -1267,8 +1267,15 @@ function addSpecialToCalendar(id){
   'STATUS:CONFIRMED',
   'END:VEVENT','END:VCALENDAR',''
  ].join('\r\n');
- const calendarUrl='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics);
- window.location.href=calendarUrl;
+ const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;
+ a.download=(r.title||'特别日子').replace(/[\\/:*?\"<>|]/g,'_')+'.ics';
+ a.type='text/calendar';
+ document.body.appendChild(a);
+ a.click();
+ setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},10000);
 }
 
 function specialDateParts(dateStr){
