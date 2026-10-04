@@ -1267,23 +1267,8 @@ function addSpecialToCalendar(id){
   'STATUS:CONFIRMED',
   'END:VEVENT','END:VCALENDAR',''
  ].join('\r\n');
- const fileName=(r.title||'特别日子').replace(/[\\/:*?\"<>|]/g,'_')+'.ics';
- const file=new File([ics],fileName,{type:'text/calendar'});
- const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
- if(isIOS && navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
-   navigator.share({files:[file]}).catch(err=>{
-     if(err && err.name!=='AbortError') alert('无法打开日历分享，请再试一次。');
-   });
-   return;
- }
- const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
- const url=URL.createObjectURL(blob);
- const a=document.createElement('a');
- a.href=url;
- a.download=fileName;
- document.body.appendChild(a);
- a.click();
- setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},10000);
+ const calendarUrl='data:text/calendar;charset=utf-8,'+encodeURIComponent(ics);
+ window.location.href=calendarUrl;
 }
 
 function specialDateParts(dateStr){
