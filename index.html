@@ -2222,7 +2222,7 @@ function itemListRender(){
       ${(x.photo||x.photoId)?`<button onclick="event.stopPropagation();itemListViewPhoto('${x.id}')" aria-label="查看照片" style="border:0;background:transparent;padding:2px 5px;margin-left:5px;font-size:19px;vertical-align:middle">📷</button>`:''}
       ${active==='全部'?`<div style="font-size:12px;color:#8b7c6c;margin-top:5px">${esc(x.category||'✨ 其他')}</div>`:''}
     </div>
-    ${!itemListMultiMode?`<button class="smallBtn" onclick="itemListOpenBuy('${x.id}')">🛒 购买</button>
+    ${!itemListMultiMode?`<button class="smallBtn" onclick="itemListOpenBuy('${x.id}')" title="购买" aria-label="购买">🛒</button>
     <div class="moreWrap"><button class="moreBtn" onclick="toggleMore(event,'itm_${x.id}')">⋯</button>
      <div id="itm_${x.id}" class="moreMenu hidden"><button onclick="itemListOpenForm('${x.id}')">✏️ 编辑</button><button onclick="itemListDelete('${x.id}')">🗑️ 删除</button></div>
     </div>`:''}
