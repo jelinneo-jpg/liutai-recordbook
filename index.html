@@ -410,6 +410,7 @@ body:has(#cleaningPage:not(.hidden)) .sectionHead{display:none!important}
 .shopDoneArea{border-top:1px solid #eadcc8;margin-top:10px;padding-top:8px}
 .shopDoneToggle{display:flex;justify-content:space-between;align-items:center;width:100%;background:none;border:0;padding:9px 0;text-align:left;color:#544538;font-size:15px}
 .shopDoneToggle span{font-size:21px;color:#8b7c6c}
+ .shopCompactItems .shopMoveIcon{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;font-size:20px!important;font-weight:700;padding:0!important;line-height:1;color:#6b5946;background:#f4eadc}
 </style>
 </head>
 <body>
@@ -1463,7 +1464,8 @@ function render(){
    return `<div class="card medCompact" style="${r.done?'opacity:.7':''}">
    <div style="display:flex;gap:10px;align-items:flex-start">
     <button onclick="toggleShopping('${r.id}')" style="border:0;background:transparent;font-size:22px;padding:0">${r.done?'☑️':'☐'}</button>
-    <div style="flex:1"><b>${esc(r.title)}${r.qty?`&nbsp;&nbsp;${esc(r.qty)}`:''}</b>${atHome?`<span style="display:inline-block;margin-left:8px;padding:3px 7px;border-radius:999px;background:#e8f3e8;color:#527052;font-size:11px;font-weight:700;">家里有 ✓</span>`:''}${r.notes?`<div class="note">${esc(r.notes)}</div>`:''}${currentFilter==='shopping'&&!cp?`<div style="margin-top:7px"><button class="shopPeriodMove" onclick="moveShoppingPeriod('${r.id}')">⇄ 移到${(r.shopPeriod||'daily')==='daily'?'周末购买':'平时购买'}</button></div>`:''}</div>
+    <div style="flex:1"><b>${esc(r.title)}${r.qty?`&nbsp;&nbsp;${esc(r.qty)}`:''}</b>${atHome?`<span style="display:inline-block;margin-left:8px;padding:3px 7px;border-radius:999px;background:#e8f3e8;color:#527052;font-size:11px;font-weight:700;">家里有 ✓</span>`:''}${r.notes?`<div class="note">${esc(r.notes)}</div>`:''}</div>
+    ${currentFilter==='shopping'&&!cp?`<button class="shopPeriodMove shopMoveIcon" onclick="moveShoppingPeriod('${r.id}')" title="移动购买分类" aria-label="移动到${(r.shopPeriod||'daily')==='daily'?'周末购买':'平时购买'}">⇄</button>`:''}
     ${(r.photo||r.photoId)?`<button class="smallBtn" style="padding:6px 8px" onclick="openPhotoViewer('${r.id}')">📷</button>`:''}
     ${r.done
       ? `<button class="smallBtn" style="padding:5px 9px;border-radius:10px;font-size:18px;line-height:1" onclick="deleteShopping('${r.id}')">×</button>`
