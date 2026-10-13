@@ -2448,7 +2448,7 @@ function cleaningHistoryHtml(){
   const [y,m,d]=date.split('-').map(Number);
   const weekday=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][new Date(y,m-1,d).getDay()];
   const names=groups.get(date);
-  html+=`<div class="cleanDayGroup"><div class="cleanDayHead"><b>${m}月${d}日 · ${weekday}</b><span class="cleanDayCount">${names.length}项</span></div>${names.map(n=>`<div class="cleanDayEntry"><span class="cleanDayCheck">✓</span><span style="flex:1;min-width:0">${esc(n.name)}</span><button type="button" class="cleanHistoryEdit" onclick="editCleaningHistoryDate('${esc(n.id)}',${n.index})" aria-label="修改打扫日期">⋯</button></div>`).join('')}</div>`;
+  html+=`<div class="cleanDayGroup"><div class="cleanDayHead"><b>${m}月${d}日 · ${weekday}</b><span class="cleanDayCount">${names.length}项</span></div>${names.map(n=>`<div class="cleanDayEntry"><span class="cleanDayCheck">✓</span><span style="flex:1;min-width:0">${esc(n.name)}</span></div>`).join('')}</div>`;
  }
  if(selected.length>5)html+=`<button class="cleanHistoryExpand" onclick="toggleCleaningHistoryAll()">${cleaningHistoryExpanded?'收起':'查看全部（'+selected.length+'天）'}</button>`;
  return html+'</section>';
@@ -2485,33 +2485,6 @@ function saveCleaning(){
  if(!r){r={id:'clean_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),category:'cleaning',history:[]};records.push(r)}
  Object.assign(r,{title,next,start:r.start||next,freq,days:freq==='custom'?days:null,notes:$('cleaningNotes').value.trim()});
  saveAll();closeCleaningForm();renderCleaning();
-}
-
-function editCleaningHistoryDate(id,index){
- const r=records.find(x=>x.category==='cleaning'&&String(x.id)===String(id));
- if(!r||!Array.isArray(r.history)||!r.history[index])return;
- document.getElementById('cleanHistoryEditId').value=id;
- document.getElementById('cleanHistoryEditIndex').value=index;
- document.getElementById('cleanHistoryEditDate').value=r.history[index];
- document.getElementById('cleanHistoryEditTitle').textContent=r.title||'打扫记录';
- document.getElementById('cleanHistoryEditModal').classList.add('show');
-}
-function closeCleaningHistoryDate(){document.getElementById('cleanHistoryEditModal').classList.remove('show')}
-function saveCleaningHistoryDate(){
- const id=document.getElementById('cleanHistoryEditId').value;
- const index=Number(document.getElementById('cleanHistoryEditIndex').value);
- const date=document.getElementById('cleanHistoryEditDate').value;
- const r=records.find(x=>x.category==='cleaning'&&String(x.id)===id);
- if(!r||!Array.isArray(r.history)||!Number.isInteger(index)||index<0||index>=r.history.length)return;
- if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){alert('请选择正确日期');return}
- const dt=new Date(date+'T12:00:00');
- if(Number.isNaN(dt.getTime())||dt.toISOString().slice(0,10)!==date){alert('日期无效');return}
- r.history[index]=date;
- const latest=r.history.slice().sort().at(-1);
- r.lastDone=latest||'';
- if(latest)r.next=cleaningAdvance(latest,r);
- cleaningHistoryMonthChoice=date.slice(0,7);
- saveAll();closeCleaningHistoryDate();renderCleaning();
 }
 
 function completeCleaning(id){
@@ -2564,18 +2537,5 @@ function cleaningMenu(id){
 </div>
 
 
-<style>
-.cleanHistoryEdit{border:0;background:#f4eadc;color:#655647;border-radius:10px;padding:5px 11px;font-size:20px;line-height:1;flex:0 0 auto}
-#cleanHistoryEditModal{z-index:110}
-#cleanHistoryEditModal .sheet{max-width:420px;margin:15vh auto 0}
-</style>
-<div class="modal" id="cleanHistoryEditModal" role="dialog" aria-modal="true" aria-label="编辑打扫日期">
- <div class="sheet"><h2>🧹 编辑打扫日期</h2>
- <p id="cleanHistoryEditTitle" style="margin:0 0 14px;color:#786857"></p>
- <input type="hidden" id="cleanHistoryEditId"><input type="hidden" id="cleanHistoryEditIndex">
- <div class="field"><label for="cleanHistoryEditDate">实际完成日期</label><input type="date" id="cleanHistoryEditDate"></div>
- <div class="modalBtns"><button type="button" class="cancel" onclick="closeCleaningHistoryDate()">取消</button><button type="button" class="save" onclick="saveCleaningHistoryDate()">保存修改</button></div>
- </div>
-</div>
 </body>
 </html>
