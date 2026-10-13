@@ -338,6 +338,7 @@ body:has(#bodyTrack:not(.hidden)) .sectionHead:has(#listTitle){display:none!impo
 .bodyTrackTrendPageHeader h2{font-size:21px;margin:0}
 .bodyTrackTrendPage .card{margin-bottom:14px}
 .bodyTrackTrendPage .card h3{margin:0 0 12px}
+.cleanScheduleRow .cleanMoreInRow{margin-left:auto;flex:0 0 auto;min-width:35px;min-height:34px;display:inline-flex;align-items:center;justify-content:center;font-size:20px;line-height:1;padding:5px 8px}.cleanScheduleRow{flex-wrap:wrap}.cleanItemTop{align-items:flex-start}
 </style>
 <style>
 .bodyTrendFilters{display:flex;gap:7px;overflow-x:auto;padding:2px 0 9px;-webkit-overflow-scrolling:touch}
@@ -375,6 +376,7 @@ body:has(#cleaningPage:not(.hidden)) .sectionHead{display:none!important}
 .cleanItemTop{display:flex;align-items:flex-start;gap:9px}.cleanItemMain{flex:1;min-width:0}
 .cleanItemTitle{font-weight:750;font-size:16px}.cleanItemSub{font-size:12px;color:#8b7c6c;margin-top:6px;line-height:1.6}
 .cleanPill{display:inline-block;padding:3px 7px;border-radius:8px;background:#f5e9d6;color:#775d41;font-size:11px;margin-top:7px}
+.cleanScheduleRow{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:7px}.cleanScheduleRow .cleanPill{margin-top:0}.cleanNextDate{font-size:12px;color:#8b7c6c;white-space:nowrap}
 .cleanPill.late{background:#f9e1dc;color:#9a493e}.cleanPill.soon{background:#fff0c9;color:#8a6724}
 .cleanComplete{border:0;background:#e1eee4;color:#38624a;border-radius:11px;padding:8px 11px;font-size:12px;font-weight:700;white-space:nowrap}
 .cleanMore{border:0;background:#f4eadc;border-radius:10px;padding:7px 9px}
@@ -2464,7 +2466,7 @@ function renderCleaning(){
  for(const [heading,group] of [['需要打扫',rows.filter(r=>cleaningStatus(r)!=='later')],['之后的计划',rows.filter(r=>cleaningStatus(r)==='later')]]){
  if(!group.length)continue;html+=`<div class="cleanSection">${heading} · ${group.length} 项</div>`;
  for(const r of group){const st=cleaningStatus(r),n=cleaningNext(r),freq=cleaningFreqLabels[r.freq]||'定期';
- html+=`<div class="cleanItem"><div class="cleanItemTop"><div class="cleanItemMain"><div class="cleanItemTitle">${esc(r.title)}</div><div class="cleanItemSub">下次打扫：${esc(n)} · ${freq}${r.freq==='custom'?' '+Number(r.days||1)+'天':''}${r.lastDone?'<div>上次完成：'+esc(r.lastDone)+'</div>':''}</div><span class="cleanPill ${st==='late'?'late':st==='soon'?'soon':''}">${st==='late'?'已逾期':st==='soon'?'近期到期':'已安排'}</span></div><button class="cleanComplete" onclick="completeCleaning('${esc(r.id)}')">✓ 完成</button><button class="cleanMore" onclick="cleaningMenu('${esc(r.id)}')">⋯</button></div>
+ html+=`<div class="cleanItem"><div class="cleanItemTop"><div class="cleanItemMain"><div class="cleanItemTitle">${esc(r.title)}</div><div class="cleanItemSub">${r.lastDone?'<div>上次完成：'+esc(r.lastDone)+'</div>':''}</div><div class="cleanScheduleRow"><span class="cleanPill ${st==='late'?'late':st==='soon'?'soon':''}">${st==='late'?'已逾期':st==='soon'?'近期到期':'已安排'}</span><span class="cleanNextDate">${freq}${r.freq==='custom'?' · '+Number(r.days||1)+'天':''} · 下次打扫：${esc(n)}</span><button class="cleanMore cleanMoreInRow" onclick="cleaningMenu('${esc(r.id)}')" aria-label="更多选项">⋯</button></div></div><button class="cleanComplete" onclick="completeCleaning('${esc(r.id)}')">✓ 完成</button></div>
  ${r.notes?`<div class="cleanHistory">备注：${esc(r.notes)}</div>`:''}
  ${cleaningShowHistory===String(r.id)?`<div class="cleanHistory"><b>完成历史</b><div>${(r.history||[]).length?(r.history||[]).slice().reverse().map(x=>esc(x)).join('、'):'暂无完成记录'}</div></div>`:''}</div>`;
  }}html+=cleaningHistoryHtml();el.innerHTML=html;
