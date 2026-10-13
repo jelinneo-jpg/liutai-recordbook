@@ -413,6 +413,7 @@ body:has(#cleaningPage:not(.hidden)) .sectionHead{display:none!important}
  .shopCompactItems .shopMoveIcon{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;font-size:20px!important;font-weight:700;padding:0!important;line-height:1;color:#6b5946;background:#f4eadc}
 </style>
 <style>
+.cleanUndo{border:0;border-radius:9px;background:#f4eadc;color:#795a42;padding:6px 9px;font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer}
 /* 按完成日期分组的打扫历史 */
 .cleanHistoryPanel{margin-top:22px;padding-bottom:20px}
 .cleanHistoryHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 12px}
@@ -2448,7 +2449,7 @@ function cleaningHistoryHtml(){
   const [y,m,d]=date.split('-').map(Number);
   const weekday=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][new Date(y,m-1,d).getDay()];
   const names=groups.get(date);
-  html+=`<div class="cleanDayGroup"><div class="cleanDayHead"><b>${m}月${d}日 · ${weekday}</b><span class="cleanDayCount">${names.length}项</span></div>${names.map(n=>`<div class="cleanDayEntry"><span class="cleanDayCheck">✓</span><span style="flex:1;min-width:0">${esc(n.name)}</span></div>`).join('')}</div>`;
+  html+=`<div class="cleanDayGroup"><div class="cleanDayHead"><b>${m}月${d}日 · ${weekday}</b><span class="cleanDayCount">${names.length}项</span></div>${names.map(n=>`<div class="cleanDayEntry"><span class="cleanDayCheck">✓</span><span style="flex:1;min-width:0">${esc(n.name)}</span><button class="cleanUndo" onclick="undoCleaning('${esc(n.id)}',${n.index})" aria-label="撤销完成 ${esc(n.name)}">↩ 撤销</button></div>`).join('')}</div>`;
  }
  if(selected.length>5)html+=`<button class="cleanHistoryExpand" onclick="toggleCleaningHistoryAll()">${cleaningHistoryExpanded?'收起':'查看全部（'+selected.length+'天）'}</button>`;
  return html+'</section>';
@@ -2493,6 +2494,21 @@ function completeCleaning(id){
  const done=cleaningToday();r.history=Array.isArray(r.history)?r.history:[];r.history.push(done);r.lastDone=done;
  // 下一次从实际完成日期开始计算，逾期完成也不会产生过去的下次日期
  r.next=cleaningAdvance(done,r);saveAll();renderCleaning();
+}
+function undoCleaning(id,index){
+ const r=records.find(x=>x.category==='cleaning'&&String(x.id)===String(id));
+ if(!r||!Array.isArray(r.history)||index<0||index>=r.history.length)return;
+ const date=r.history[index];
+ if(!confirm('确定撤销「'+r.title+'」在 '+date+' 的完成记录吗？'))return;
+ r.history.splice(index,1);
+ if(r.history.length){
+  r.lastDone=r.history[r.history.length-1];
+  r.next=cleaningAdvance(r.lastDone,r);
+ }else{
+  r.lastDone='';
+  r.next=r.start||cleaningToday();
+ }
+ saveAll();renderCleaning();
 }
 function cleaningMenu(id){
  const r=records.find(x=>x.category==='cleaning'&&String(x.id)===String(id));if(!r)return;
