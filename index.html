@@ -321,6 +321,9 @@ button[onclick*="deletePage"]{
 .bodyTrackRow .moreWrap{text-align:right}.bodyTrackRow .moreBtn{font-size:17px;padding:5px 8px}
 .bodyTrackRow small{margin-left:3px}.bodyTrackMore{justify-content:center}
 @media(max-width:380px){.bodyTrackStats h2{font-size:19px}.bodyTrackRow{font-size:12px;padding:8px 5px}}
+
+/* 体重腰围页面隐藏重复的外层标题，保留带新增按钮的标题 */
+body:has(#bodyTrack:not(.hidden)) .sectionHead:has(#listTitle){display:none!important}
 </style>
 </head>
 <body>
