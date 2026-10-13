@@ -412,6 +412,21 @@ body:has(#cleaningPage:not(.hidden)) .sectionHead{display:none!important}
 .shopDoneToggle span{font-size:21px;color:#8b7c6c}
  .shopCompactItems .shopMoveIcon{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;font-size:20px!important;font-weight:700;padding:0!important;line-height:1;color:#6b5946;background:#f4eadc}
 </style>
+<style>
+/* 按完成日期分组的打扫历史 */
+.cleanHistoryPanel{margin-top:22px;padding-bottom:20px}
+.cleanHistoryHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 12px}
+.cleanHistoryHead h3{margin:0;font-size:18px}
+.cleanHistoryMonth{max-width:155px;border:1px solid #eadcc8;background:#fffdf8;border-radius:11px;padding:9px 7px;color:#544538;font-size:13px}
+.cleanDayGroup{background:#fffdf8;border:1px solid #eadcc8;border-radius:16px;padding:12px 14px;margin-bottom:9px}
+.cleanDayHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px;font-size:14px}
+.cleanDayCount{font-size:12px;color:#8b7c6c}
+.cleanDayEntry{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:14px;line-height:1.4}
+.cleanDayEntry+.cleanDayEntry{border-top:1px solid #f2e8da}
+.cleanDayCheck{color:#5b9470;font-weight:bold}
+.cleanHistoryExpand{display:block;margin:10px auto 0;border:0;background:#f4eadc;color:#544538;border-radius:11px;padding:10px 19px;font-weight:700}
+.cleanHistoryEmpty{background:#fffdf8;border:1px dashed #e4d5c1;border-radius:15px;padding:22px;text-align:center;color:#8b7c6c;font-size:13px}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -2407,6 +2422,37 @@ function cleaningNext(r){
  return d;
 }
 function cleaningStatus(r){const n=cleaningNext(r),today=cleaningToday(),diff=Math.round((cleaningDate(n)-cleaningDate(today))/86400000);return diff<0?'late':diff<=3?'soon':'later'}
+let cleaningHistoryMonthChoice='';
+let cleaningHistoryExpanded=false;
+function changeCleaningHistoryMonth(value){cleaningHistoryMonthChoice=value;cleaningHistoryExpanded=false;renderCleaning()}
+function toggleCleaningHistoryAll(){cleaningHistoryExpanded=!cleaningHistoryExpanded;renderCleaning()}
+function cleaningHistoryHtml(){
+ const groups=new Map();
+ for(const r of records.filter(x=>x.category==='cleaning'&&!x.archived)){
+  for(const date of (Array.isArray(r.history)?r.history:[])){
+   if(typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date))continue;
+   if(!groups.has(date))groups.set(date,[]);
+   groups.get(date).push(r.title||'未命名家务');
+  }
+ }
+ const dates=Array.from(groups.keys()).sort().reverse();
+ const current=cleaningToday().slice(0,7);
+ const months=Array.from(new Set([current,...dates.map(d=>d.slice(0,7))])).sort().reverse();
+ if(!cleaningHistoryMonthChoice||!months.includes(cleaningHistoryMonthChoice))cleaningHistoryMonthChoice=current;
+ const selected=dates.filter(d=>d.startsWith(cleaningHistoryMonthChoice));
+ const shown=cleaningHistoryExpanded?selected:selected.slice(0,5);
+ const options=months.map(m=>`<option value="${m}" ${m===cleaningHistoryMonthChoice?'selected':''}>${m.slice(0,4)}年${Number(m.slice(5))}月</option>`).join('');
+ let html=`<section class="cleanHistoryPanel"><div class="cleanHistoryHead"><h3>📋 打扫历史</h3><select class="cleanHistoryMonth" aria-label="选择打扫历史月份" onchange="changeCleaningHistoryMonth(this.value)">${options}</select></div>`;
+ if(!selected.length)html+='<div class="cleanHistoryEmpty">这个月还没有完成的打扫记录</div>';
+ for(const date of shown){
+  const [y,m,d]=date.split('-').map(Number);
+  const weekday=['星期日','星期一','星期二','星期三','星期四','星期五','星期六'][new Date(y,m-1,d).getDay()];
+  const names=groups.get(date);
+  html+=`<div class="cleanDayGroup"><div class="cleanDayHead"><b>${m}月${d}日 · ${weekday}</b><span class="cleanDayCount">${names.length}项</span></div>${names.map(n=>`<div class="cleanDayEntry"><span class="cleanDayCheck">✓</span><span>${esc(n)}</span></div>`).join('')}</div>`;
+ }
+ if(selected.length>5)html+=`<button class="cleanHistoryExpand" onclick="toggleCleaningHistoryAll()">${cleaningHistoryExpanded?'收起':'查看全部（'+selected.length+'天）'}</button>`;
+ return html+'</section>';
+}
 function renderCleaning(){
  const el=$('cleaningPage');if(!el)return;
  const rows=records.filter(r=>r.category==='cleaning'&&!r.archived).sort((a,b)=>cleaningNext(a).localeCompare(cleaningNext(b)));
@@ -2420,7 +2466,7 @@ function renderCleaning(){
  html+=`<div class="cleanItem"><div class="cleanItemTop"><div class="cleanItemMain"><div class="cleanItemTitle">${esc(r.title)}</div><div class="cleanItemSub">下次打扫：${esc(n)} · ${freq}${r.freq==='custom'?' '+Number(r.days||1)+'天':''}${r.lastDone?'<div>上次完成：'+esc(r.lastDone)+'</div>':''}</div><span class="cleanPill ${st==='late'?'late':st==='soon'?'soon':''}">${st==='late'?'已逾期':st==='soon'?'近期到期':'已安排'}</span></div><button class="cleanComplete" onclick="completeCleaning('${esc(r.id)}')">✓ 完成</button><button class="cleanMore" onclick="cleaningMenu('${esc(r.id)}')">⋯</button></div>
  ${r.notes?`<div class="cleanHistory">备注：${esc(r.notes)}</div>`:''}
  ${cleaningShowHistory===String(r.id)?`<div class="cleanHistory"><b>完成历史</b><div>${(r.history||[]).length?(r.history||[]).slice().reverse().map(x=>esc(x)).join('、'):'暂无完成记录'}</div></div>`:''}</div>`;
- }}el.innerHTML=html;
+ }}html+=cleaningHistoryHtml();el.innerHTML=html;
 }
 function openCleaningForm(id=''){
  const r=records.find(x=>x.category==='cleaning'&&String(x.id)===String(id));
