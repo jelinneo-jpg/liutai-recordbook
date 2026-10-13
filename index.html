@@ -305,6 +305,22 @@ button[onclick*="deletePage"]{
 .shoppingWorkEmpty{color:var(--muted);font-size:14px;padding:4px 0 8px}
 .shoppingWorkCard .card{background:#fffdf8}
 
+
+/* 体重腰围紧凑布局 */
+.bodyTrackHeading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 9px}
+.bodyTrackHeading h3{margin:0;font-size:18px}
+.bodyTrackAdd{border:0;border-radius:12px;background:#584536;color:white;padding:9px 13px;font-size:13px;font-weight:700;white-space:nowrap}
+.bodyTrackStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:10px}
+.bodyTrackStats .card{min-width:0;padding:12px;margin:0}.bodyTrackStats h2{font-size:22px;margin:7px 0;white-space:nowrap}
+.bodyTrackToggle{width:100%;display:flex;justify-content:space-between;align-items:center;border:1px solid #eadcc8;background:#fffdf8;border-radius:14px;padding:12px 14px;text-align:left;color:#544538;font-weight:700;margin:9px 0 12px}
+.bodyTrackHistoryHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:15px 0 10px}
+.bodyTrackHistoryHead select{max-width:145px;min-width:0;border:1px solid #eadcc8;background:#fffdf8;border-radius:10px;padding:9px 6px;color:#544538}
+.bodyTrackTable{background:#fffdf8;border:1px solid #eadcc8;border-radius:15px;overflow:visible}
+.bodyTrackRow{display:grid;grid-template-columns:1fr 1fr 1fr 40px;align-items:center;gap:3px;padding:9px 8px;border-bottom:1px solid #f0e6d8;font-size:13px}
+.bodyTrackRow:last-child{border-bottom:0}.bodyTrackTh{font-weight:700;color:#8b7c6c;font-size:12px}
+.bodyTrackRow .moreWrap{text-align:right}.bodyTrackRow .moreBtn{font-size:17px;padding:5px 8px}
+.bodyTrackRow small{margin-left:3px}.bodyTrackMore{justify-content:center}
+@media(max-width:380px){.bodyTrackStats h2{font-size:19px}.bodyTrackRow{font-size:12px;padding:8px 5px}}
 </style>
 </head>
 <body>
@@ -2182,8 +2198,24 @@ function bodyTrackGraph(rows,key,unit){
  const pts=data.map((r,i)=>x(i).toFixed(1)+','+y(values[i]).toFixed(1)).join(' ');
  return `<svg viewBox="0 0 350 155" style="width:100%;height:auto" role="img" aria-label="${unit}趋势图"><line x1="25" y1="130" x2="325" y2="130" stroke="#e2d3bd"/><polyline fill="none" stroke="#c48b57" stroke-width="3" stroke-linejoin="round" points="${pts}"/>${data.map((r,i)=>`<circle cx="${x(i)}" cy="${y(values[i])}" r="4" fill="#9e6740"><title>${esc(r.date)}：${values[i]}${unit}</title></circle>`).join('')}<text x="25" y="148" font-size="11" fill="#8b7c6c">${esc(data[0].date.slice(5))}</text><text x="325" y="148" text-anchor="end" font-size="11" fill="#8b7c6c">${esc(data[data.length-1].date.slice(5))}</text></svg>`;
 }
-function renderBodyTrack(){const el=$('bodyTrack');if(!el)return;const rows=bodyTrackRows(),last=rows[0],prev=rows[1];
- el.innerHTML=`<div class="grid" style="grid-template-columns:1fr 1fr;margin:10px 0"><div class="card"><div class="count">最新体重</div><h2 style="margin:8px 0">${last?.weight?esc(last.weight)+' kg':'—'}</h2><div class="count">较上次 ${bodyTrackChange(last?.weight,prev?.weight,' kg')}</div></div><div class="card"><div class="count">最新腰围</div><h2 style="margin:8px 0">${last?.waist?esc(last.waist)+' cm':'—'}</h2><div class="count">较上次 ${bodyTrackChange(last?.waist,prev?.waist,' cm')}</div></div></div><button class="save" style="width:100%;padding:13px;border:0;border-radius:14px;margin-bottom:12px;font-weight:800" onclick="openBodyTrackForm()">＋ 新增记录</button><div class="card"><h3>📈 体重趋势</h3>${bodyTrackGraph(rows,'weight','kg')}</div><div class="card"><h3>📈 腰围趋势</h3>${bodyTrackGraph(rows,'waist','cm')}</div><h3>📋 历史记录 <span class="count">${rows.length} 条</span></h3>${rows.map(r=>`<div class="card medCompact"><div class="cardTop"><div><b>${esc(r.date)}</b><div class="meta">⚖️ ${r.weight?esc(r.weight)+' kg':'—'}　📏 ${r.waist?esc(r.waist)+' cm':'—'}</div>${r.notes?`<div class="note">${esc(r.notes)}</div>`:''}</div><div class="moreWrap"><button class="moreBtn" onclick="toggleMore(event,'bodymore_${r.id}')">⋯</button><div id="bodymore_${r.id}" class="moreMenu hidden"><button onclick="openBodyTrackForm('${r.id}')">✏️ 编辑</button><button onclick="deleteBodyTrack('${r.id}')">🗑️ 删除</button></div></div></div></div>`).join('')||'<div class="empty">还没有记录，点击新增记录开始吧</div>'}`;
+let bodyTrackMonth='',bodyTrackShowAll=false,bodyTrackTrendOpen=false;
+function toggleBodyTrackTrend(){bodyTrackTrendOpen=!bodyTrackTrendOpen;renderBodyTrack()}
+function changeBodyTrackMonth(v){bodyTrackMonth=v;bodyTrackShowAll=false;renderBodyTrack()}
+function toggleBodyTrackAll(){bodyTrackShowAll=!bodyTrackShowAll;renderBodyTrack()}
+function renderBodyTrack(){
+ const el=$('bodyTrack');if(!el)return;
+ const rows=bodyTrackRows(),last=rows[0],prev=rows[1];
+ const months=[...new Set(rows.map(r=>String(r.date||'').slice(0,7)))].filter(Boolean).sort().reverse();
+ if(!months.includes(bodyTrackMonth))bodyTrackMonth=months[0]||'';
+ const filtered=rows.filter(r=>String(r.date||'').startsWith(bodyTrackMonth));
+ const visible=bodyTrackShowAll?filtered:filtered.slice(0,5);
+ el.innerHTML=`<div class="bodyTrackHeading"><h3>⚖️ 体重与腰围</h3><button class="bodyTrackAdd" onclick="openBodyTrackForm()">＋ 新增</button></div>
+ <div class="bodyTrackStats"><div class="card"><div class="count">最新体重</div><h2>${last?.weight?esc(last.weight)+' kg':'—'}</h2><div class="count">较上次 ${bodyTrackChange(last?.weight,prev?.weight,' kg')}</div></div><div class="card"><div class="count">最新腰围</div><h2>${last?.waist?esc(last.waist)+' cm':'—'}</h2><div class="count">较上次 ${bodyTrackChange(last?.waist,prev?.waist,' cm')}</div></div></div>
+ <button class="bodyTrackToggle" onclick="toggleBodyTrackTrend()">📈 查看趋势图 <span>${bodyTrackTrendOpen?'⌃':'›'}</span></button>
+ ${bodyTrackTrendOpen?`<div class="card"><h3>体重趋势</h3>${bodyTrackGraph(rows,'weight','kg')}</div><div class="card"><h3>腰围趋势</h3>${bodyTrackGraph(rows,'waist','cm')}</div>`:''}
+ <div class="bodyTrackHistoryHead"><b>📋 历史记录 <span class="count">${rows.length} 条</span></b>${months.length?`<select aria-label="选择月份" onchange="changeBodyTrackMonth(this.value)">${months.map(m=>`<option value="${esc(m)}" ${m===bodyTrackMonth?'selected':''}>${esc(m.slice(0,4))}年${esc(m.slice(5))}月</option>`).join('')}</select>`:''}</div>
+ ${visible.length?`<div class="bodyTrackTable"><div class="bodyTrackRow bodyTrackTh"><span>日期</span><span>体重</span><span>腰围</span><span></span></div>${visible.map(r=>`<div class="bodyTrackRow"><span>${esc(r.date.slice(5))}${r.notes?`<small title="${esc(r.notes)}">📝</small>`:''}</span><span>${r.weight?esc(r.weight)+' kg':'—'}</span><span>${r.waist?esc(r.waist)+' cm':'—'}</span><span class="moreWrap"><button class="moreBtn" onclick="toggleMore(event,'bodymore_${r.id}')">⋯</button><span id="bodymore_${r.id}" class="moreMenu hidden"><button onclick="openBodyTrackForm('${r.id}')">✏️ 编辑</button><button onclick="deleteBodyTrack('${r.id}')">🗑️ 删除</button></span></span></div>`).join('')}</div>`:'<div class="empty">这个月份还没有记录</div>'}
+ ${filtered.length>5?`<button class="bodyTrackToggle bodyTrackMore" onclick="toggleBodyTrackAll()">${bodyTrackShowAll?'收起记录 ⌃':'查看全部 '+filtered.length+' 条记录 ﹀'}</button>`:''}`;
 }
 function openBodyTrackForm(id=''){const r=records.find(x=>String(x.id)===String(id));$('bodyTrackId').value=id;$('bodyTrackFormTitle').textContent=r?'✏️ 编辑身体记录':'⚖️ 新增身体记录';$('bodyTrackDate').value=r?.date||today();$('bodyTrackWeight').value=r?.weight??'';$('bodyTrackWaist').value=r?.waist??'';$('bodyTrackNotes').value=r?.notes||'';$('bodyTrackModal').classList.add('show')}
 function closeBodyTrackForm(){$('bodyTrackModal').classList.remove('show')}
