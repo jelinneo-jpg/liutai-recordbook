@@ -537,7 +537,7 @@ body:has(#cleaningPage:not(.hidden)) .sectionHead{display:none!important}
 <div class="field"><label>重复频率</label><select id="cleaningFreq" onchange="document.getElementById('cleaningCustomWrap').style.display=this.value==='custom'?'block':'none'"><option value="daily">每天</option><option value="weekly">每星期</option><option value="biweekly">每两星期</option><option value="monthly">每个月</option><option value="custom">自定义每隔几天</option></select></div>
 <div class="field" id="cleaningCustomWrap" style="display:none"><label>每隔几天</label><input type="number" id="cleaningDays" min="1" max="3650" value="3"></div>
 <div class="field"><label>备注（选填）</label><textarea id="cleaningNotes" placeholder="例如：使用指定清洁剂"></textarea></div>
-<div class="modalBtns"><button class="cancel" onclick="closeCleaningForm()">取消</button><button class="save" onclick="saveCleaning()">保存项目</button></div>
+<div class="modalBtns"><button id="cleaningDeleteButton" class="cancel" style="display:none;color:#b44d4d;margin-right:auto" onclick="deleteCleaningFromForm()">删除项目</button><button class="cancel" onclick="closeCleaningForm()">取消</button><button class="save" onclick="saveCleaning()">保存项目</button></div>
 </div></div>
 <div id="bodyTrackModal" class="modal" style="z-index:75"><div class="sheet" style="margin:75px auto 30px">
 <h2 id="bodyTrackFormTitle">⚖️ 新增身体记录</h2><input type="hidden" id="bodyTrackId">
@@ -2509,6 +2509,7 @@ function openCleaningForm(id=''){
  $('cleaningName').value=r?.title||'';$('cleaningStart').value=r?.next||cleaningToday();
  $('cleaningFreq').value=r?.freq||'weekly';$('cleaningDays').value=r?.days||3;
  $('cleaningNotes').value=r?.notes||'';$('cleaningCustomWrap').style.display=$('cleaningFreq').value==='custom'?'block':'none';
+ $('cleaningDeleteButton').style.display=r?'inline-flex':'none';
  $('cleaningModal').classList.add('show');
 }
 function closeCleaningForm(){$('cleaningModal').classList.remove('show')}
@@ -2544,13 +2545,14 @@ function undoCleaning(id,index){
  }
  saveAll();renderCleaning();
 }
-function cleaningMenu(id){
- const r=records.find(x=>x.category==='cleaning'&&String(x.id)===String(id));if(!r)return;
- const choice=prompt('选择操作：\n1 编辑项目\n2 查看/收起完成历史\n3 删除项目','2');
- if(choice==='1')openCleaningForm(id);
- else if(choice==='2'){cleaningShowHistory=cleaningShowHistory===String(id)?'':String(id);renderCleaning()}
- else if(choice==='3'&&confirm('确定删除「'+r.title+'」及其完成历史吗？')){records=records.filter(x=>x!==r);saveAll();renderCleaning()}
+function deleteCleaningFromForm(){
+ const id=$('cleaningId').value;
+ const r=records.find(x=>x.category==='cleaning'&&String(x.id)===String(id));
+ if(!r||!confirm('确定删除「'+r.title+'」及其完成历史吗？'))return;
+ records=records.filter(x=>x!==r);saveAll();closeCleaningForm();renderCleaning();
 }
+function cleaningMenu(id){openCleaningForm(id)}
+
 
 </script>
 
