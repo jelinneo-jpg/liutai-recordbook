@@ -346,6 +346,24 @@ body:has(#bodyTrack:not(.hidden)) .sectionHead:has(#listTitle){display:none!impo
 .bodyTrendMetrics{padding-bottom:0}
 .bodyTrackTrendPage .card{overflow:hidden}
 </style>
+<style>
+/* Compact iPhone-friendly body trend screen */
+.bodyTrendControl{background:#fffdf8;border:1px solid #eadcc8;border-radius:20px;padding:14px;margin-bottom:12px}
+.bodyTrendTop{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#887967;font-size:13px;font-weight:700}
+.bodyTrendTop select{border:1px solid #e7d8c4;background:#fff8ed;border-radius:11px;padding:9px 12px;color:#544538;font-weight:700;font-size:14px;max-width:65%}
+.bodyTrendMetricTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:14px}
+.bodyTrendMetricTabs button{border:1px solid #e9dbc7;background:#fff8ed;color:#655647;border-radius:12px;padding:10px 3px;font-size:13px;font-weight:700;white-space:nowrap}
+.bodyTrendMetricTabs button.selected{background:#584536;border-color:#584536;color:white}
+.bodyTrackTrendPage .bodyTrendChartCard{padding:16px;border-radius:20px}
+.bodyTrendChartCard h3{font-size:17px;margin-bottom:15px!important}
+.bodyTrendSummary{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:13px}
+.bodyTrendSummary>div{background:#fff6e9;border-radius:14px;padding:12px 10px;min-width:0;display:flex;flex-direction:column;gap:5px}
+.bodyTrendSummary span{font-size:12px;color:#8b7c6c}.bodyTrendSummary strong{font-size:22px;color:#4d4035;white-space:nowrap}.bodyTrendSummary strong small{font-size:12px;font-weight:500}.bodyTrendSummary em{font-size:11px;color:#978773;font-style:normal}.bodyTrendSummary .bodyTrendDelta{font-size:15px;white-space:normal;line-height:1.5}
+.bodyTrendPlot{padding:3px 0 0}.bodyTrendPlot svg{display:block;width:100%;height:auto;max-height:230px}
+.bodyTrendFoot{text-align:center;color:#9a8976;font-size:11px;margin-top:8px}
+.bodyTrendSingle{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;padding:16px 5px;color:#b37a4e}.bodyTrendSingle span{color:#8b7c6c}.bodyTrendSingle small{flex-basis:100%;text-align:center;color:#9a8976}
+.bodyTrendEmpty{text-align:center;padding:24px 8px;color:#8b7c6c;font-size:24px}.bodyTrendEmpty div{font-size:14px;font-weight:700;margin:7px}.bodyTrendEmpty small{font-size:12px}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -2222,32 +2240,34 @@ function bodyTrackTrendSelectPeriod(v){bodyTrackTrendPeriod=v;renderBodyTrackTre
 function bodyTrackTrendSelectMetric(v){bodyTrackTrendMetric=v;renderBodyTrackTrendPage()}
 function bodyTrackGraph(rows,key,unit){
  const valid=rows.filter(r=>Number(r[key])>0&&/^\d{4}-\d{2}-\d{2}$/.test(String(r.date||''))).sort((a,b)=>a.date.localeCompare(b.date));
- if(!valid.length)return '<div class="empty" style="padding:20px">还没有这项数据</div>';
- const todayStr=new Date().toLocaleDateString('en-CA');
- const todayDate=new Date();todayDate.setHours(0,0,0,0);
+ const today=new Date();today.setHours(0,0,0,0);
  const days=bodyTrackTrendPeriod==='all'?Infinity:Number(bodyTrackTrendPeriod);
- const start=new Date(todayDate);if(Number.isFinite(days))start.setDate(start.getDate()-days+1);
- const scoped=valid.filter(r=>{const d=new Date(r.date+'T00:00:00');return !Number.isFinite(days)||(d>=start&&d<=todayDate)});
- if(!scoped.length)return '<div class="empty" style="padding:20px">这个时间范围还没有记录</div>';
- // Long-term views summarize by calendar week, while the original entries remain untouched.
+ const start=new Date(today);if(Number.isFinite(days))start.setDate(start.getDate()-days+1);
+ const scoped=valid.filter(r=>{const d=new Date(r.date+'T00:00:00');return !Number.isFinite(days)||(d>=start&&d<=today)});
+ if(!scoped.length)return '<div class="bodyTrendEmpty">🌱<div>这个时间范围还没有记录</div><small>添加记录后，这里就会显示变化</small></div>';
  let data=scoped.map(r=>({date:r.date,value:Number(r[key]),count:1}));
- if(bodyTrackTrendPeriod==='365'||bodyTrackTrendPeriod==='all'){
-  const groups=new Map();
-  data.forEach(r=>{const d=new Date(r.date+'T00:00:00'),day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r)});
-  data=[...groups].map(([date,arr])=>({date,value:arr.reduce((sum,r)=>sum+r.value,0)/arr.length,count:arr.length}));
- }
- // Bound SVG complexity on very long histories using evenly spaced display samples.
- if(data.length>90){const stride=Math.ceil(data.length/90);data=data.filter((_,i)=>i%stride===0||i===data.length-1)}
- const values=data.map(r=>r.value),min=Math.min(...values),max=Math.max(...values),pad=Math.max((max-min)*.25,key==='weight'?.25:.5),low=min-pad,high=max+pad;
- const x=i=>28+i*(294/Math.max(1,data.length-1)),y=v=>125-(v-low)/(high-low)*105;
- const pts=data.map((r,i)=>x(i).toFixed(1)+','+y(r.value).toFixed(1)).join(' ');
- const labels=data.length>1?`<text x="25" y="148" font-size="11" fill="#8b7c6c">${esc(data[0].date.slice(5))}</text><text x="325" y="148" text-anchor="end" font-size="11" fill="#8b7c6c">${esc(data[data.length-1].date.slice(5))}</text>`:'';
- return `<svg viewBox="0 0 350 155" style="width:100%;height:auto" role="img" aria-label="${unit}趋势图"><line x1="25" y1="130" x2="325" y2="130" stroke="#e2d3bd"/>${data.length>1?`<polyline fill="none" stroke="#c48b57" stroke-width="3" stroke-linejoin="round" points="${pts}"/>`:''}${data.map((r,i)=>`<circle cx="${x(i)}" cy="${y(r.value)}" r="${data.length>40?2.5:4}" fill="#9e6740"><title>${esc(r.date)}：${Number(r.value.toFixed(2))}${unit}${r.count>1?'（当周'+r.count+'笔平均）':''}</title></circle>`).join('')}${labels}</svg><div class="count" style="text-align:center;margin-top:5px">${scoped.length} 笔记录${bodyTrackTrendPeriod==='365'||bodyTrackTrendPeriod==='all'?' · 按周平均显示':''}</div>`;
+ // Only summarize when enough points exist; never collapse two measurements into one dot.
+ if(data.length>65){const groups=new Map();data.forEach(r=>{const d=new Date(r.date+'T00:00:00');d.setDate(d.getDate()-(d.getDay()+6)%7);const k=d.toISOString().slice(0,10);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(r)});data=[...groups].map(([date,arr])=>({date,value:arr.reduce((a,r)=>a+r.value,0)/arr.length,count:arr.length}));}
+ if(data.length>90){const step=Math.ceil(data.length/90);data=data.filter((_,i)=>i%step===0||i===data.length-1)}
+ const latest=scoped[scoped.length-1],prev=scoped.length>1?scoped[scoped.length-2]:null;
+ const delta=prev?latest[key]-prev[key]:null;
+ const deltaText=delta===null?'首次记录':Math.abs(delta)<.001?'与上次持平':(delta>0?'↑ +':'↓ −')+Math.abs(delta).toFixed(1)+' '+unit;
+ const summary=`<div class="bodyTrendSummary"><div><span>最新记录</span><strong>${Number(latest[key])} <small>${unit}</small></strong><em>${esc(latest.date)}</em></div><div><span>较上次</span><strong class="bodyTrendDelta">${deltaText}</strong><em>${scoped.length} 笔记录</em></div></div>`;
+ if(data.length===1)return summary+`<div class="bodyTrendSingle">● <b>${Number(data[0].value)} ${unit}</b><span>${esc(data[0].date.slice(5))}</span><small>再记录一次，就能看到变化曲线</small></div>`;
+ const vals=data.map(r=>r.value),mn=Math.min(...vals),mx=Math.max(...vals),pad=Math.max((mx-mn)*.3,key==='weight'?.3:.6),lo=mn-pad,hi=mx+pad;
+ const t0=new Date(data[0].date+'T00:00:00').getTime(),t1=new Date(data[data.length-1].date+'T00:00:00').getTime();
+ const x=r=>46+((new Date(r.date+'T00:00:00').getTime()-t0)/Math.max(1,t1-t0))*278;
+ const y=v=>126-(v-lo)/(hi-lo)*100;
+ const pts=data.map(r=>x(r).toFixed(1)+','+y(r.value).toFixed(1)).join(' ');
+ const grid=[0,.5,1].map(f=>{const yy=26+f*100,v=hi-f*(hi-lo);return `<line x1="46" y1="${yy}" x2="324" y2="${yy}" stroke="#eee4d6" stroke-dasharray="3 5"/><text x="39" y="${yy+4}" text-anchor="end" font-size="10" fill="#9a8976">${v.toFixed(1)}</text>`}).join('');
+ const circles=data.map((r,i)=>`<circle cx="${x(r).toFixed(1)}" cy="${y(r.value).toFixed(1)}" r="${data.length>35?2.5:4}" fill="#b37a4e" stroke="#fffaf2" stroke-width="1.5"><title>${esc(r.date)}：${r.value.toFixed(1)} ${unit}</title></circle>`).join('');
+ return summary+`<div class="bodyTrendPlot"><svg viewBox="0 0 350 160" role="img" aria-label="${unit}变化趋势"><defs><linearGradient id="bodyTrendFill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d9a477" stop-opacity=".22"/><stop offset="1" stop-color="#d9a477" stop-opacity="0"/></linearGradient></defs>${grid}<polygon points="46,126 ${pts} 324,126" fill="url(#bodyTrendFill)"/><polyline points="${pts}" fill="none" stroke="#b37a4e" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>${circles}<text x="46" y="151" font-size="11" fill="#8b7c6c">${esc(data[0].date.slice(5))}</text><text x="324" y="151" text-anchor="end" font-size="11" fill="#8b7c6c">${esc(data[data.length-1].date.slice(5))}</text></svg></div><div class="bodyTrendFoot">${data.length<scoped.length?'按周汇总显示 · ':''}共 ${scoped.length} 笔记录 · 原始记录完整保留</div>`;
 }
 function renderBodyTrackTrendPage(){
  const rows=bodyTrackRows(),items=[['weight','⚖️ 体重','kg'],['waist','📏 腰围','cm'],['abdomen','📐 腹围','cm']];
- const periods=[['7','7天'],['30','30天'],['90','90天'],['365','1年'],['all','全部']];
- $('bodyTrackTrendContent').innerHTML=`<div class="card"><div class="bodyTrendFilters">${periods.map(([v,label])=>`<button type="button" class="${bodyTrackTrendPeriod===v?'selected':''}" onclick="bodyTrackTrendSelectPeriod('${v}')">${label}</button>`).join('')}</div><div class="bodyTrendFilters bodyTrendMetrics">${items.map(([v,label])=>`<button type="button" class="${bodyTrackTrendMetric===v?'selected':''}" onclick="bodyTrackTrendSelectMetric('${v}')">${label}</button>`).join('')}</div></div><div class="card"><h3>${items.find(x=>x[0]===bodyTrackTrendMetric)[1]}趋势</h3>${bodyTrackGraph(rows,bodyTrackTrendMetric,items.find(x=>x[0]===bodyTrackTrendMetric)[2])}</div>`;
+ const periods=[['7','最近7天'],['30','最近30天'],['90','最近90天'],['365','最近1年'],['all','全部记录']];
+ const metric=items.find(x=>x[0]===bodyTrackTrendMetric);
+ $('bodyTrackTrendContent').innerHTML=`<div class="bodyTrendControl"><div class="bodyTrendTop"><span>查看时间</span><select aria-label="趋势图时间范围" onchange="bodyTrackTrendSelectPeriod(this.value)">${periods.map(([v,label])=>`<option value="${v}" ${bodyTrackTrendPeriod===v?'selected':''}>${label}</option>`).join('')}</select></div><div class="bodyTrendMetricTabs">${items.map(([v,label])=>`<button type="button" class="${bodyTrackTrendMetric===v?'selected':''}" onclick="bodyTrackTrendSelectMetric('${v}')">${label}</button>`).join('')}</div></div><div class="card bodyTrendChartCard"><h3>${metric[1]}变化</h3>${bodyTrackGraph(rows,bodyTrackTrendMetric,metric[2])}</div>`;
 }
 
 let bodyTrackMonth='',bodyTrackShowAll=false,bodyTrackTrendOpen=false;
