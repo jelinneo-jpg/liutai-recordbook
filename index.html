@@ -2222,6 +2222,7 @@ function itemListBackShopping(){
  itemListMultiMode=true;
  itemListRender();
 }
+window.itemListOrderPeriod=window.itemListOrderPeriod||'daily';
 function itemListRenderOrderPage(){
  if(currentFilter!=='itemList')return;
  $('listTitle').textContent='🛒 确认购物订单';
@@ -2246,6 +2247,13 @@ function itemListRenderOrderPage(){
  $('list').innerHTML=`
   <div style="max-width:620px;margin:0 auto">
    <button class="smallBtn" onclick="itemListBackShopping()" style="margin-bottom:12px">← 返回继续购物</button>
+   <div class="card medCompact" style="margin-bottom:12px;padding:13px 15px">
+    <label for="itemListOrderPeriod" style="display:block;font-weight:700;margin-bottom:8px">🛒 加入哪个购物分类</label>
+    <select id="itemListOrderPeriod" onchange="window.itemListOrderPeriod=this.value" style="width:100%;background:#fffdf8;border:1px solid #eadcc8;border-radius:12px;padding:12px;color:#544538;font-size:15px">
+     <option value="daily" ${window.itemListOrderPeriod==='daily'?'selected':''}>🛍️ 平时购买</option>
+     <option value="weekend" ${window.itemListOrderPeriod==='weekend'?'selected':''}>🛒 周末购买</option>
+    </select>
+   </div>
    ${rows}
    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px">
     <button class="smallBtn" onclick="itemListBackShopping()">返回继续购物</button>
@@ -2256,18 +2264,21 @@ function itemListRenderOrderPage(){
 }
 function itemListConfirmOrder(){
  if(!itemListOrder.length){alert('还没有选择要购买的物品');return}
+ const period=$('itemListOrderPeriod')?.value==='weekend'?'weekend':'daily';
  itemListOrder.forEach(x=>{
   const n=kitchenNorm(x.name);
-  const existing=records.find(r=>r.category==='shopping'&&!r.customPageId&&!r.done&&kitchenNorm(r.title)===n);
+  const existing=records.find(r=>r.category==='shopping'&&!r.customPageId&&!r.done&&(r.shopPeriod||'daily')===period&&kitchenNorm(r.title)===n);
   if(existing){existing.qty=x.qty+'个';if(x.photoId)existing.photoId=x.photoId;else if(x.photo)existing.photo=x.photo}
-  else records.push({id:'shop'+Date.now()+Math.random().toString(36).slice(2,6),category:'shopping',customPageId:null,title:x.name,qty:x.qty+'个',notes:'',photo:'',photoId:x.photoId||'',done:false,source:'itemList',created:Date.now()});
+  else records.push({id:'shop'+Date.now()+Math.random().toString(36).slice(2,6),category:'shopping',customPageId:null,title:x.name,qty:x.qty+'个',notes:'',photo:'',photoId:x.photoId||'',done:false,source:'itemList',shopPeriod:period,created:Date.now()});
  });
  saveAll();
  itemListOrder=[];
  itemListMultiMode=false;
  window.itemListOrderPageOpen=false;
+ shoppingPeriodView=period;
+ window.itemListOrderPeriod='daily';
  itemListRender();
- alert('已加入购物清单');
+ alert('已加入'+(period==='weekend'?'周末购买':'平时购买')+'清单');
 }
 function itemListChooseCategory(cat){
  window.itemListActiveCategory=cat;
