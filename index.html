@@ -386,6 +386,11 @@ body:has(#cleaningPage:not(.hidden)) .sectionHead{display:none!important}
 .shopPeriodBar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 3px}
 .shopPeriodMove{border:0;background:#f4eadc;border-radius:9px;padding:5px 8px;font-size:12px;color:#655647}
 </style>
+<style>
+/* 打扫记录：固定上方导航，打扫内容本身可上下滑动 */
+#cleaningPage:not(.hidden){overflow-y:auto!important;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:110px;touch-action:pan-y;min-height:120px}
+#itemListBuyPeriod{width:100%;border:1px solid #e5d6c1;background:white;border-radius:12px;padding:11px;color:#43382d}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -835,6 +840,14 @@ function fitRecordsScrollArea(){
   const h=Math.max(120, window.innerHeight-top);
   list.style.height=h+'px';
   list.style.maxHeight=h+'px';
+  // 打扫页面不使用 #list，需单独设定可滚动区域
+  const cleaning=document.getElementById('cleaningPage');
+  if(cleaning){
+    const cleanTop=cleaning.getBoundingClientRect().top;
+    const cleanHeight=Math.max(120,window.innerHeight-cleanTop);
+    cleaning.style.height=cleanHeight+'px';
+    cleaning.style.maxHeight=cleanHeight+'px';
+  }
 }
 window.addEventListener('resize',()=>requestAnimationFrame(fitRecordsScrollArea));
 
@@ -885,7 +898,7 @@ function setFilter(f,btn){
 
  if($('genericAddBtn')) $('genericAddBtn').style.display=(f==='life')?'':'none';
  if($('bodyTrack')) $('bodyTrack').classList.toggle('hidden',f!=='bodytrack');
-  if($('cleaningPage')) $('cleaningPage').classList.toggle('hidden',f!=='cleaning');
+  if($('cleaningPage')) { $('cleaningPage').classList.toggle('hidden',f!=='cleaning'); if(f==='cleaning') $('cleaningPage').scrollTop=0; }
  if($('list')) $('list').style.display=(f==='bodytrack'||f==='cleaning')?'none':'';
 
  $('listTitle').innerHTML=
@@ -2044,6 +2057,7 @@ function itemListEnsureUI(){
    <div id="itemListBuyModal" class="modal"><div class="sheet" style="max-width:520px">
     <h2 style="margin-top:0">🛒 购买 <span id="itemListBuyName"></span></h2>
     <div class="field"><label>数量</label><input id="itemListBuyQty" type="number" min="1" step="1" inputmode="numeric" placeholder="例如：2" value="1"></div>
+    <div class="field"><label>加入哪个购物分类</label><select id="itemListBuyPeriod"><option value="daily">🛍️ 平时购买</option><option value="weekend">🛒 周末购买</option></select></div>
     <div class="modalBtns"><button class="cancel" onclick="itemListCloseBuy()">取消</button><button class="save" onclick="itemListConfirmBuy()">加入购物清单</button></div>
    </div></div>`);
  }
@@ -2096,7 +2110,7 @@ function itemListDelete(id){
 }
 function itemListOpenBuy(id){
  const x=itemListGet().find(v=>v.id===id);if(!x)return;
- itemListBuyId=id;$('itemListBuyName').textContent=x.name;$('itemListBuyQty').value='1';
+ itemListBuyId=id;$('itemListBuyName').textContent=x.name;$('itemListBuyQty').value='1';$('itemListBuyPeriod').value=(typeof shoppingPeriodView!=='undefined'&&shoppingPeriodView==='weekend')?'weekend':'daily';
  $('itemListBuyModal').classList.add('show');setTimeout(()=>$('itemListBuyQty')?.focus(),50);
 }
 function itemListCloseBuy(){$('itemListBuyModal').classList.remove('show')}
@@ -2104,10 +2118,11 @@ function itemListConfirmBuy(){
  const x=itemListGet().find(v=>v.id===itemListBuyId);if(!x)return;
  const q=Math.floor(Number($('itemListBuyQty').value));if(!Number.isFinite(q)||q<1){alert('请填写数量');return}
  const n=kitchenNorm(x.name);
- const existing=records.find(r=>r.category==='shopping'&&!r.customPageId&&!r.done&&kitchenNorm(r.title)===n);
- if(existing){existing.qty=q+'个';if(x.photoId)existing.photoId=x.photoId;else if(x.photo)existing.photo=x.photo}
- else records.push({id:'shop'+Date.now()+Math.random().toString(36).slice(2,6),category:'shopping',customPageId:null,title:x.name,qty:q+'个',notes:'',photo:'',photoId:x.photoId||'',done:false,source:'itemList',created:Date.now()});
- saveAll();itemListCloseBuy();itemListRender();alert('已加入购物清单');
+ const period=$('itemListBuyPeriod')?.value==='weekend'?'weekend':'daily';
+ const existing=records.find(r=>r.category==='shopping'&&!r.customPageId&&!r.done&&(r.shopPeriod||'daily')===period&&kitchenNorm(r.title)===n);
+ if(existing){existing.qty=q+'个';existing.shopPeriod=period;if(x.photoId)existing.photoId=x.photoId;else if(x.photo)existing.photo=x.photo}
+ else records.push({id:'shop'+Date.now()+Math.random().toString(36).slice(2,6),category:'shopping',customPageId:null,title:x.name,qty:q+'个',notes:'',photo:'',photoId:x.photoId||'',done:false,shopPeriod:period,source:'itemList',created:Date.now()});
+ saveAll();itemListCloseBuy();itemListRender();alert('已加入'+(period==='weekend'?'周末购买':'平时购买'));
 }
 function itemListRender(){
  if(currentFilter!=='itemList')return;
