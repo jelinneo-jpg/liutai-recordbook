@@ -2244,10 +2244,11 @@ function itemListRender(){
  $('list').innerHTML=`
   ${orderHtml}
   <div style="display:grid;grid-template-columns:88px minmax(0,1fr);gap:12px;align-items:start">
-    <div style="background:#fffdf8;border:1px solid rgba(226,210,188,.75);border-radius:20px;padding:8px 6px;position:sticky;top:0">
-      ${rail}
+    <div class="itemListFixedRail" style="background:#fffdf8;border:1px solid rgba(226,210,188,.75);border-radius:20px;padding:8px 6px;height:min(66dvh,620px);display:flex;flex-direction:column;min-height:0;overflow:hidden">
+      <div style="flex:0 0 auto">${rail.split('</button>')[0]}</button></div>
+      <div style="flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">${rail.split('</button>').slice(1).join('</button>')}</div>
     </div>
-    <div style="min-width:0">
+    <div class="itemListFixedItems" style="min-width:0;height:min(66dvh,620px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
       ${shown.length?shown.map(card).join(''):'<div class="empty" style="padding:28px 10px">这个分类还没有物品</div>'}
     </div>
   </div>`;
