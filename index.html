@@ -2611,6 +2611,28 @@ function cleaningMenu(id){openCleaningForm(id)}
 })();
 </script>
 <script>
+/* 批量接收已选食材及购买数量：刘太厨房 → 我的食材 */
+(function(){
+ const params=new URLSearchParams(location.search);
+ const raw=params.get('kitchen_batch');if(!raw)return;
+ try{history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
+ let incoming;try{incoming=JSON.parse(raw);}catch(e){return;}
+ if(!Array.isArray(incoming)||!Array.isArray(records))return;
+ let changed=false;
+ for(const item of incoming.slice(0,100)){
+  const name=String(item.name||'').trim().slice(0,150);
+  const qty=String(item.qty||'').trim().slice(0,80);
+  if(!name)continue;
+  const same=records.find(r=>r.category==='shopping'&&!r.customPageId&&!r.done&&isKitchenShoppingRecord(r)&&r.title.trim().toLowerCase()===name.toLowerCase()&&(r.kitchenSection||'menu')==='pantry');
+  if(same){if(qty&&same.qty!==qty){same.qty=qty;changed=true;}continue;}
+  records.push({id:'shk'+Date.now()+Math.random().toString(36).slice(2,9),category:'shopping',customPageId:null,title:name,qty,notes:'',photo:'',done:false,shopPeriod:'daily',source:'kitchen_pantry',kitchenSection:'pantry',created:Date.now()});changed=true;
+ }
+ if(changed)saveAll();
+ // 隐藏 iframe 接收时，不弹出提示或强制切换页面。
+ if(window===window.top){kitchenSectionView='pantry';const btn=document.getElementById('kitchenNavTab');setFilter('kitchen',btn||null);}
+})();
+</script>
+<script>
 /* 接收刘太厨房食材，加入原有购物清单，不影响现有记录 */
 (function(){
  const params=new URLSearchParams(location.search);
@@ -2621,9 +2643,15 @@ function cleaningMenu(id){openCleaningForm(id)}
  if(!Array.isArray(records)||!name)return;
  const norm=s=>String(s||'').trim().toLocaleLowerCase();
  const section=params.get('kitchen_section')==='menu'?'menu':'pantry';
- const exists=records.some(r=>r.category==='shopping'&&!r.customPageId&&!r.done&&isKitchenShoppingRecord(r)&&(r.kitchenSection||'menu')===section&&norm(r.title)===norm(name));
- if(!exists){
-  records.push({id:'shk'+Date.now()+Math.random().toString(36).slice(2,6),category:'shopping',customPageId:null,title:name,qty:'',notes:'',photo:'',done:false,shopPeriod:'daily',source:'kitchen',kitchenSection:section,created:Date.now()});
+ const matches=records.filter(r=>r.category==='shopping'&&!r.customPageId&&!r.done&&isKitchenShoppingRecord(r)&&norm(r.title)===norm(name));
+ const exists=matches.some(r=>(r.kitchenSection||'menu')===section);
+ // 从「我的食材」购买时，如同名食材已被旧版本放入点菜单，自动纠正分类。
+ if(section==='pantry'&&!exists&&matches.length){
+  matches[0].kitchenSection='pantry';
+  matches[0].source='kitchen_pantry';
+  saveAll();
+ }else if(!exists){
+  records.push({id:'shk'+Date.now()+Math.random().toString(36).slice(2,6),category:'shopping',customPageId:null,title:name,qty:'',notes:'',photo:'',done:false,shopPeriod:'daily',source:section==='pantry'?'kitchen_pantry':'kitchen_menu',kitchenSection:section,created:Date.now()});
   saveAll();
  }
  kitchenSectionView=section;
