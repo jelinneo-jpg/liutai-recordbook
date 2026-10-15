@@ -2590,5 +2590,25 @@ function cleaningMenu(id){openCleaningForm(id)}
 </div>
 
 
+<script>
+/* 接收刘太厨房食材，加入原有购物清单，不影响现有记录 */
+(function(){
+ const params=new URLSearchParams(location.search);
+ const name=(params.get('kitchen_add')||'').trim().slice(0,150);
+ if(!name)return;
+ const cleanUrl=location.pathname+location.search.replace(/([?&])kitchen_(?:add|ref)=[^&]*/g,'').replace(/^&/,'?').replace(/[?&]$/,'')+location.hash;
+ try{history.replaceState(null,'',location.pathname+location.hash);}catch(e){}
+ if(!Array.isArray(records)||!name)return;
+ const norm=s=>String(s||'').trim().toLocaleLowerCase();
+ const exists=records.some(r=>r.category==='shopping'&&!r.customPageId&&!r.done&&norm(r.title)===norm(name));
+ if(!exists){
+  records.push({id:'shk'+Date.now()+Math.random().toString(36).slice(2,6),category:'shopping',customPageId:null,title:name,qty:'',notes:'',photo:'',done:false,shopPeriod:'daily',source:'kitchen',created:Date.now()});
+  saveAll();
+ }
+ const btn=[...document.querySelectorAll('.tab')].find(x=>(x.getAttribute('onclick')||'').includes("setFilter('shopping'"));
+ setFilter('shopping',btn||null);
+ setTimeout(()=>alert(exists?'🛒「'+name+'」已在待购买清单中':'✅「'+name+'」已加入购物清单'),150);
+})();
+</script>
 </body>
 </html>
