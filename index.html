@@ -993,7 +993,7 @@ function setFilter(f,btn){
  if($('medicalCopyDeleteTopBtn')) $('medicalCopyDeleteTopBtn').style.display='none';
  if($('shoppingAddTopBtn')) $('shoppingAddTopBtn').style.display='none';
  if($('shoppingAddInline')) $('shoppingAddInline').style.display=shopping?'inline-block':'none';
- if($('shoppingKitchenInline')) $('shoppingKitchenInline').style.display=shopping?'inline-block':'none';
+ if($('shoppingKitchenInline')) $('shoppingKitchenInline').style.display=(f==='kitchen')?'inline-block':'none';
  syncMedicalCopySectionMascot(cp,layout);
  syncSpecialSectionMascot(f,cp,layout);
  syncShoppingSectionMascot(f,cp,layout);
