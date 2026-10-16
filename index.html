@@ -485,6 +485,14 @@ body:has(#cyclePage.show) #notesBottomNav button[data-page="cycle"]{background:#
 /* 厨房标题恢复专属厨师小新，完整显示、不裁切 */
 #listTitle .kitchenTitleMascot{width:46px!important;height:46px!important;object-fit:contain!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;vertical-align:middle;margin-right:8px!important}
 </style>
+<style>
+/* 厨房标题人物适度缩小，保持透明背景 */
+#listTitle .kitchenTitleMascot{width:36px!important;height:36px!important;object-fit:contain!important;margin-right:7px!important;vertical-align:middle!important}
+/* 六个导航按钮的图案和文字使用固定行高，确保文字水平对齐 */
+#notesBottomNav button{display:grid!important;grid-template-rows:35px 20px!important;align-content:center!important;justify-items:center!important;align-items:center!important;gap:2px!important;min-height:67px!important;padding:4px 1px!important;line-height:20px!important}
+#notesBottomNav button .navIcon{height:35px!important;min-height:35px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+#notesBottomNav button .bottomMascot{width:32px!important;height:32px!important;object-fit:contain!important}
+</style>
 </head>
 <body>
 <div class="wrap">
