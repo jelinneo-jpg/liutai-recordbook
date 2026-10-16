@@ -462,7 +462,14 @@ body:has(#cleaningPage:not(.hidden)) .sectionHead{display:none!important}
 .cleanScheduleRefined .cleanMoreSmall{margin-left:auto;flex:0 0 27px!important;width:27px!important;min-width:27px!important;height:27px!important;min-height:27px!important;padding:0!important;border-radius:8px;font-size:17px!important}
 @media(max-width:390px){.cleanLastInline{font-size:10px}.cleanTopRefined .cleanItemTitle{font-size:15px}}
 </style>
-</head>
+<style>
+#cycleRecordModal{z-index:110;overflow-y:auto;padding:12px}
+#cycleRecordModal .cycleModalSheet{max-width:570px;margin:45px auto 25px;padding:16px;overflow:visible}
+#cycleRecordModal #cycleFormPanel{margin:0;box-shadow:none;border:0;padding:7px 0}
+.cycleModalHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:18px}
+.cycleModalHeader button{border:0;background:#f4eadc;border-radius:10px;padding:8px 13px;font-size:18px}
+.cycleCloseBottom{width:100%;padding:12px;border:0;background:#f2e5d2;border-radius:12px;font-weight:700;margin-top:12px}
+</style></head>
 <body>
 <div class="wrap">
   <div class="header">
@@ -2908,7 +2915,7 @@ body.notesMedicalButtons #builtinCopyBtn{order:4!important;margin-left:auto!impo
 <style>
 #notesBottomNav{grid-template-columns:repeat(6,minmax(0,1fr))!important}
 #notesBottomNav button{font-size:11px!important;padding:5px 1px!important}
-#cyclePage{display:none;padding-bottom:110px}
+#cyclePage{display:none;padding-bottom:110px}#cycleQuickModal{z-index:110}#cycleRecordModal{z-index:109}.cycleEntry>span:first-child{min-width:0;overflow-wrap:anywhere}
 #cyclePage.show{display:block;overflow-y:auto!important;max-height:calc(100dvh - 170px);-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain}
 .cyclePanel{background:#fffdf8;border:1px solid #eadcc8;border-radius:20px;padding:15px;margin:10px 0;box-shadow:0 5px 16px #533e2510}
 .cycleHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -2943,18 +2950,27 @@ const between=(d,a,b)=>d>=a&&d<=b;
 const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
 const latest=()=>[...state.periods].sort((a,b)=>b.start.localeCompare(a.start))[0];
 function forecast(){const l=latest();if(!l)return null;const next=shift(l.start,Number(state.length)||28);const ov=shift(next,-14);return {next,ov,start:shift(ov,-5),end:shift(ov,1)}}
-function render(){const host=$c('cyclePage');if(!host)return;const f=forecast(),last=latest();let html=`<div class="cycleHead"><h3 style="margin:0">🌸 经期日历</h3><button onclick="cycleEdit()">＋ 记录</button></div><div class="cyclePanel"><div class="cycleHead"><button onclick="cycleMove(-1)">‹</button><b>${year}年${month+1}月</b><button onclick="cycleMove(1)">›</button></div><div class="cycleWeek">${['一','二','三','四','五','六','日'].map(x=>'<span>'+x+'</span>').join('')}</div><div class="cycleDays">`;
+function render(){const host=$c('cyclePage');if(!host)return;const f=forecast(),last=latest();let html=`<div class="cycleHead"><h3 style="margin:0">🌸 经期日历</h3><button onclick="cycleSettings()">⚙️ 设置</button></div><div class="cyclePanel"><div class="cycleHead"><button onclick="cycleMove(-1)">‹</button><b>${year}年${month+1}月</b><button onclick="cycleMove(1)">›</button></div><div class="cycleWeek">${['一','二','三','四','五','六','日'].map(x=>'<span>'+x+'</span>').join('')}</div><div class="cycleDays">`;
 const first=(new Date(year,month,1).getDay()+6)%7;for(let i=0;i<first;i++)html+='<span></span>';
 const n=new Date(year,month+1,0).getDate();for(let i=1;i<=n;i++){const d=iso(new Date(year,month,i));const period=state.periods.some(p=>between(d,p.start,p.end||shift(p.start,(Number(state.days)||5)-1)));const manual=state.ovulations.some(o=>o.date===d);const fertile=f&&between(d,f.start,f.end);const predicted=f&&d===f.ov;const predPeriod=f&&between(d,f.next,shift(f.next,(Number(state.days)||5)-1));let cls=period?'period':manual||predicted?'ovulate':fertile?'fertile':predPeriod?'predPeriod':'';html+=`<button class="cycleDay ${cls} ${chosen===d?'selected':''} ${d===iso(today)?'today':''}" onclick="cyclePick('${d}')">${i}${manual?'•':''}</button>`}
-html+=`</div><div class="cycleLegend"><span><i class="cycleDot" style="background:#f6c9d2"></i>已记录经期</span><span><i class="cycleDot" style="background:#e6dafa"></i>易孕期预测</span><span><i class="cycleDot" style="background:#c6adee"></i>排卵日</span><span><i class="cycleDot" style="background:#ffe7ed"></i>预测经期</span></div></div><div class="cyclePanel"><div class="cycleStats"><div>下次月经（预测）<b>${f?f.next:'尚无记录'}</b></div><div>排卵日（预测）<b>${f?f.ov:'尚无记录'}</b></div><div>平均周期<b>${state.length} 天</b></div><div>最近月经<b>${last?last.start:'尚无记录'}</b></div></div><p style="font-size:12px;color:#8b7c6c;line-height:1.6">预测仅供参考，不能用来避孕或确认排卵。手动记录的排卵日会显示圆点。</p></div><div class="cyclePanel" id="cycleFormPanel"><b>✏️ 新增或修改记录</b><div class="cycleForm"><label>月经开始日期<input id="cycleStart" type="date" value="${chosen||iso(today)}"></label><label>月经结束日期<input id="cycleEnd" type="date"></label><button onclick="cycleSavePeriod()">保存月经日期</button><button style="background:#d9c2e8;color:#493c31" onclick="cycleSaveOvulation()">记录排卵日</button><label class="wide">排卵日期（可手动调整）<input id="cycleOvDate" type="date" value="${chosen||(f?f.ov:iso(today))}"></label><label>平均周期（天）<input id="cycleLength" type="number" min="15" max="60" value="${state.length}"></label><label>平均经期（天）<input id="cycleDaysCount" type="number" min="1" max="15" value="${state.days}"></label><button class="wide" onclick="cycleSaveSettings()">保存周期设置</button></div></div><div class="cyclePanel"><b>📖 历史记录</b>`;
-const entries=[...state.periods.map(p=>({type:'period',date:p.start,label:'🩷 月经 '+p.start+' 至 '+(p.end||'未填写结束')})),...state.ovulations.map(o=>({type:'ovulation',date:o.date,label:'💜 排卵 '+o.date}))].sort((a,b)=>b.date.localeCompare(a.date));html+=entries.length?entries.map(e=>`<div class="cycleEntry"><span>${e.label}</span><button class="cycleBtn" onclick="cycleDelete('${e.type}','${e.date}')">删除</button></div>`).join(''):'<p style="color:#8b7c6c;font-size:13px">还没有记录</p>';host.innerHTML=html+'</div>';
+html+=`</div><div class="cycleLegend"><span><i class="cycleDot" style="background:#f6c9d2"></i>已记录经期</span><span><i class="cycleDot" style="background:#e6dafa"></i>易孕期预测</span><span><i class="cycleDot" style="background:#c6adee"></i>排卵日</span><span><i class="cycleDot" style="background:#ffe7ed"></i>预测经期</span></div></div><div class="cyclePanel"><div class="cycleStats"><div>下次月经（预测）<b>${f?f.next:'尚无记录'}</b></div><div>排卵日（预测）<b>${f?f.ov:'尚无记录'}</b></div><div>平均周期<b>${state.length} 天</b></div><div>最近月经<b>${last?last.start:'尚无记录'}</b></div></div><p style="font-size:12px;color:#8b7c6c;line-height:1.6">预测仅供参考，不能用来避孕或确认排卵。手动记录的排卵日会显示圆点。</p></div><div class="cyclePanel" id="cycleFormPanel"><b>✏️ 新增或修改记录</b><div class="cycleForm"><label>月经开始日期<input id="cycleStart" type="date" value="${chosen||iso(today)}"></label><label>月经结束日期（选填）<input id="cycleEnd" type="date"></label><button onclick="cycleSavePeriod()">保存月经日期</button><button style="background:#d9c2e8;color:#493c31" onclick="cycleSaveOvulation()">记录排卵日</button><label class="wide">排卵日期（可手动调整）<input id="cycleOvDate" type="date" value="${chosen||(f?f.ov:iso(today))}"></label><label>平均周期（天）<input id="cycleLength" type="number" min="15" max="60" value="${state.length}"></label><label>平均经期（天）<input id="cycleDaysCount" type="number" min="1" max="15" value="${state.days}"></label><button class="wide" onclick="cycleSaveSettings()">保存周期设置</button></div></div><div class="cyclePanel"><b>📖 历史记录</b>`;
+const entries=[...state.periods.map(p=>({type:'period',date:p.start,label:'🩷 月经 '+p.start+' 至 '+(p.end||'未填写结束')})),...state.ovulations.map(o=>({type:'ovulation',date:o.date,label:'💜 排卵 '+o.date}))].sort((a,b)=>b.date.localeCompare(a.date));html+=entries.length?entries.map(e=>`<div class="cycleEntry"><span>${e.label}</span><span style="display:flex;gap:5px"><button class="cycleBtn" onclick="cycleEditEntry('${e.type}','${e.date}')">编辑</button><button class="cycleBtn" onclick="cycleDelete('${e.type}','${e.date}')">删除</button></span></div>`).join(''):'<p style="color:#8b7c6c;font-size:13px">还没有记录</p>';host.innerHTML=html+'</div>';
+const form=$c('cycleFormPanel');
+const modal=$c('cycleRecordModal');
+if(form&&modal){modal.querySelector('.cycleModalBody').appendChild(form);form.style.display='block';}
+
 }
 window.cycleMove=n=>{month+=n;if(month<0){month=11;year--}if(month>11){month=0;year++}render()};
-window.cyclePick=d=>{chosen=d;render()};
-window.cycleEdit=()=>{$c('cycleFormPanel')?.scrollIntoView({behavior:'smooth',block:'center'})};
-window.cycleSavePeriod=()=>{const a=$c('cycleStart').value,b=$c('cycleEnd').value;if(!a)return alert('请选择开始日期');if(b&&b<a)return alert('结束日期不能早于开始日期');if(b&&diff(b,a)>20)return alert('请检查经期日期');state.periods=state.periods.filter(x=>x.start!==a);state.periods.push({start:a,end:b});save();render()};
-window.cycleSaveOvulation=()=>{const d=$c('cycleOvDate').value;if(!d)return alert('请选择排卵日期');if(!state.ovulations.some(x=>x.date===d))state.ovulations.push({date:d});save();render()};
-window.cycleSaveSettings=()=>{const a=Number($c('cycleLength').value),b=Number($c('cycleDaysCount').value);if(a<15||a>60||b<1||b>15)return alert('请检查周期天数');state.length=a;state.days=b;save();render()};
+window.cyclePick=d=>{chosen=d;render();const m=$c('cycleQuickModal');if(m){$c('cycleQuickDate').textContent=d;m.classList.add('show')}};
+window.cycleQuickClose=()=>{$c('cycleQuickModal')?.classList.remove('show')};
+window.cycleQuickSave=()=>{const d=chosen;if(!d)return;const existing=state.periods.some(p=>p.start===d);if(existing){alert('这一天已经记录为月经开始日期，可以在下方历史记录编辑');return}state.periods.push({start:d,end:''});save();window.cycleQuickClose();render()};
+window.cycleEditEntry=(type,d)=>{chosen=d;render();window.cycleEdit();const a=$c('cycleStart'),b=$c('cycleEnd'),o=$c('cycleOvDate');if(type==='period'){const p=state.periods.find(x=>x.start===d);if(a)a.value=d;if(b)b.value=p?.end||'';}else if(o)o.value=d;};
+window.cycleSettings=()=>{chosen='';render();window.cycleEdit()};
+window.cycleEdit=()=>{const modal=$c('cycleRecordModal');if(modal){modal.classList.add('show');modal.setAttribute('aria-hidden','false');}};
+window.cycleClose=()=>{const modal=$c('cycleRecordModal');modal?.classList.remove('show');modal?.setAttribute('aria-hidden','true')};
+window.cycleSavePeriod=()=>{const a=$c('cycleStart').value,b=$c('cycleEnd').value;if(!a)return alert('请选择开始日期');if(b&&b<a)return alert('结束日期不能早于开始日期');if(b&&diff(b,a)>20)return alert('请检查经期日期');state.periods=state.periods.filter(x=>x.start!==a && x.start!==chosen);state.periods.push({start:a,end:b});save();render();window.cycleClose()};
+window.cycleSaveOvulation=()=>{const d=$c('cycleOvDate').value;if(!d)return alert('请选择排卵日期');state.ovulations=state.ovulations.filter(x=>x.date!==chosen);if(!state.ovulations.some(x=>x.date===d))state.ovulations.push({date:d});save();render();window.cycleClose()};
+window.cycleSaveSettings=()=>{const a=Number($c('cycleLength').value),b=Number($c('cycleDaysCount').value);if(a<15||a>60||b<1||b>15)return alert('请检查周期天数');state.length=a;state.days=b;save();render();window.cycleClose()};
 window.cycleDelete=(type,d)=>{if(!confirm('确定删除这条记录？'))return;const key=type==='period'?'periods':'ovulations';state[key]=state[key].filter(x=>(x.start||x.date)!==d);save();render()};
 function switchCycle(on){const ids=['builtinCopyActions','medicalActions','specialActions','shoppingActions','customActions','customDeleteActions','bodyTrack','cleaningPage','list'];if(on){window._cycleDisplays={};ids.forEach(id=>{const e=$c(id);if(e){window._cycleDisplays[id]=e.style.display;e.style.display='none'}});const sh=document.querySelector('.sectionHead');if(sh){window._cycleHeadDisplay=sh.style.display;sh.style.display='none'}$c('cyclePage').classList.add('show');render()}else{$c('cyclePage').classList.remove('show');if(window._cycleDisplays){ids.forEach(id=>{const e=$c(id);if(e)e.style.display=window._cycleDisplays[id]||''});window._cycleDisplays=null}const sh=document.querySelector('.sectionHead');if(sh&&window._cycleHeadDisplay!==undefined)sh.style.display=window._cycleHeadDisplay}}
 const old=window.setFilter;
@@ -2975,7 +2991,12 @@ window.setFilter=function(f,btn){
  document.body.style.overflowY='';
  return old.apply(this,arguments);
 };
-document.addEventListener('DOMContentLoaded',()=>{const nav=$c('notesBottomNav');const more=nav?.querySelector('[data-page="more"]');if(nav&&more){const b=document.createElement('button');b.dataset.page='cycle';b.innerHTML='<span class="navIcon">🌸</span>经期';b.onclick=()=>window.notesGo('cycle');nav.insertBefore(b,more)}const wrap=document.querySelector('.wrap');const page=document.createElement('div');page.id='cyclePage';wrap.appendChild(page);render()});
+document.addEventListener('DOMContentLoaded',()=>{const nav=$c('notesBottomNav');const more=nav?.querySelector('[data-page="more"]');if(nav&&more){const b=document.createElement('button');b.dataset.page='cycle';b.innerHTML='<span class="navIcon">🌸</span>经期';b.onclick=()=>window.notesGo('cycle');nav.insertBefore(b,more)}const wrap=document.querySelector('.wrap');const page=document.createElement('div');page.id='cyclePage';wrap.appendChild(page);
+const modal=document.createElement('div');modal.id='cycleRecordModal';modal.className='modal';modal.setAttribute('aria-hidden','true');
+modal.innerHTML='<div class="sheet cycleModalSheet"><div class="cycleModalHeader"><b>🌸 经期与排卵记录</b><button type="button" onclick="cycleClose()">✕</button></div><div class="cycleModalBody"></div><button type="button" class="cycleCloseBottom" onclick="cycleClose()">关闭</button></div>';
+modal.addEventListener('click',e=>{if(e.target===modal)window.cycleClose()});document.body.appendChild(modal);
+const quick=document.createElement('div');quick.id='cycleQuickModal';quick.className='modal';quick.innerHTML='<div class="sheet" style="max-width:390px;margin:20vh auto"><h2>🌸 月经来了</h2><p>选择的日期：<b id="cycleQuickDate"></b></p><p style="font-size:13px;color:#8b7c6c">只记录月经开始日，系统会根据周期设置自动估算经期和排卵期。</p><div class="modalBtns"><button class="cancel" onclick="cycleQuickClose()">取消</button><button class="save" onclick="cycleQuickSave()">确认月经来了</button></div></div>';
+quick.addEventListener('click',e=>{if(e.target===quick)window.cycleQuickClose()});document.body.appendChild(quick);render()});
 })();
 </script>
 </body>
