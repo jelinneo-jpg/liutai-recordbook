@@ -2904,5 +2904,62 @@ body.notesMedicalButtons #builtinCopyBtn{order:4!important;margin-left:auto!impo
 <style>
 .bodyTrackHeading h3,.cleanHead h3{display:flex!important;align-items:center!important;gap:7px!important}
 .sectionShinMascot{width:34px!important;height:34px!important;object-fit:contain!important;flex-shrink:0!important}
-</style></body>
+</style>
+<style>
+#notesBottomNav{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+#notesBottomNav button{font-size:11px!important;padding:5px 1px!important}
+#cyclePage{display:none;padding-bottom:110px}
+#cyclePage.show{display:block}
+.cyclePanel{background:#fffdf8;border:1px solid #eadcc8;border-radius:20px;padding:15px;margin:10px 0;box-shadow:0 5px 16px #533e2510}
+.cycleHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cycleHead button,.cycleBtn{border:0;border-radius:11px;background:#f2e5d2;color:#544538;padding:9px 12px;font-weight:700}
+.cycleWeek,.cycleDays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center}
+.cycleWeek{margin:15px 0 8px;color:#8b7c6c;font-size:12px}
+.cycleDay{position:relative;aspect-ratio:1;border:0;border-radius:11px;background:#fff7e9;color:#43382d;font-size:14px;padding:0}
+.cycleDay.period{background:#f6c9d2}.cycleDay.fertile{background:#e6dafa}.cycleDay.ovulate{background:#c6adee;font-weight:800}.cycleDay.predPeriod{background:#ffe7ed;border:1px dashed #e9a4b4}
+.cycleDay.selected{outline:2px solid #584536;outline-offset:1px}.cycleDay.today:after{content:'·';position:absolute;bottom:-3px;left:48%;font-weight:bold}
+.cycleLegend{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:#79695b;margin-top:13px}
+.cycleDot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px}
+.cycleStats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.cycleStats>div{background:#fff7eb;border-radius:13px;padding:12px;font-size:12px;color:#8b7c6c}
+.cycleStats b{display:block;font-size:17px;color:#493c31;margin-top:5px}
+.cycleForm{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.cycleForm label{font-size:12px;color:#786857}.cycleForm input,.cycleForm select{display:block;width:100%;font-size:16px;border:1px solid #e5d6c1;background:white;border-radius:11px;padding:10px;margin-top:5px}
+.cycleForm .wide{grid-column:1/-1}.cycleForm button{border:0;border-radius:11px;background:#584536;color:white;padding:12px;font-weight:700}
+.cycleEntry{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #f0e6d8;font-size:13px}
+.cycleEntry:last-child{border-bottom:0}
+</style>
+<script>
+(function(){
+const KEY='myNotesCycleRecordsV1';let state={periods:[],ovulations:[],length:28,days:5};
+try{const old=JSON.parse(localStorage.getItem(KEY)||'null');if(old&&typeof old==='object')state={...state,...old}}catch(e){}
+const today=new Date();let year=today.getFullYear(),month=today.getMonth(),chosen='';
+const $c=id=>document.getElementById(id);
+const iso=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+const date=s=>new Date(s+'T12:00:00');
+const shift=(s,n)=>{let d=date(s);d.setDate(d.getDate()+n);return iso(d)};
+const diff=(a,b)=>Math.round((date(a)-date(b))/86400000);
+const between=(d,a,b)=>d>=a&&d<=b;
+const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
+const latest=()=>[...state.periods].sort((a,b)=>b.start.localeCompare(a.start))[0];
+function forecast(){const l=latest();if(!l)return null;const next=shift(l.start,Number(state.length)||28);const ov=shift(next,-14);return {next,ov,start:shift(ov,-5),end:shift(ov,1)}}
+function render(){const host=$c('cyclePage');if(!host)return;const f=forecast(),last=latest();let html=`<div class="cycleHead"><h3 style="margin:0">🌸 经期日历</h3><button onclick="cycleEdit()">＋ 记录</button></div><div class="cyclePanel"><div class="cycleHead"><button onclick="cycleMove(-1)">‹</button><b>${year}年${month+1}月</b><button onclick="cycleMove(1)">›</button></div><div class="cycleWeek">${['一','二','三','四','五','六','日'].map(x=>'<span>'+x+'</span>').join('')}</div><div class="cycleDays">`;
+const first=(new Date(year,month,1).getDay()+6)%7;for(let i=0;i<first;i++)html+='<span></span>';
+const n=new Date(year,month+1,0).getDate();for(let i=1;i<=n;i++){const d=iso(new Date(year,month,i));const period=state.periods.some(p=>between(d,p.start,p.end||shift(p.start,(Number(state.days)||5)-1)));const manual=state.ovulations.some(o=>o.date===d);const fertile=f&&between(d,f.start,f.end);const predicted=f&&d===f.ov;const predPeriod=f&&between(d,f.next,shift(f.next,(Number(state.days)||5)-1));let cls=period?'period':manual||predicted?'ovulate':fertile?'fertile':predPeriod?'predPeriod':'';html+=`<button class="cycleDay ${cls} ${chosen===d?'selected':''} ${d===iso(today)?'today':''}" onclick="cyclePick('${d}')">${i}${manual?'•':''}</button>`}
+html+=`</div><div class="cycleLegend"><span><i class="cycleDot" style="background:#f6c9d2"></i>已记录经期</span><span><i class="cycleDot" style="background:#e6dafa"></i>易孕期预测</span><span><i class="cycleDot" style="background:#c6adee"></i>排卵日</span><span><i class="cycleDot" style="background:#ffe7ed"></i>预测经期</span></div></div><div class="cyclePanel"><div class="cycleStats"><div>下次月经（预测）<b>${f?f.next:'尚无记录'}</b></div><div>排卵日（预测）<b>${f?f.ov:'尚无记录'}</b></div><div>平均周期<b>${state.length} 天</b></div><div>最近月经<b>${last?last.start:'尚无记录'}</b></div></div><p style="font-size:12px;color:#8b7c6c;line-height:1.6">预测仅供参考，不能用来避孕或确认排卵。手动记录的排卵日会显示圆点。</p></div><div class="cyclePanel" id="cycleFormPanel"><b>✏️ 新增或修改记录</b><div class="cycleForm"><label>月经开始日期<input id="cycleStart" type="date" value="${chosen||iso(today)}"></label><label>月经结束日期<input id="cycleEnd" type="date"></label><button onclick="cycleSavePeriod()">保存月经日期</button><button style="background:#d9c2e8;color:#493c31" onclick="cycleSaveOvulation()">记录排卵日</button><label class="wide">排卵日期（可手动调整）<input id="cycleOvDate" type="date" value="${chosen||(f?f.ov:iso(today))}"></label><label>平均周期（天）<input id="cycleLength" type="number" min="15" max="60" value="${state.length}"></label><label>平均经期（天）<input id="cycleDaysCount" type="number" min="1" max="15" value="${state.days}"></label><button class="wide" onclick="cycleSaveSettings()">保存周期设置</button></div></div><div class="cyclePanel"><b>📖 历史记录</b>`;
+const entries=[...state.periods.map(p=>({type:'period',date:p.start,label:'🩷 月经 '+p.start+' 至 '+(p.end||'未填写结束')})),...state.ovulations.map(o=>({type:'ovulation',date:o.date,label:'💜 排卵 '+o.date}))].sort((a,b)=>b.date.localeCompare(a.date));html+=entries.length?entries.map(e=>`<div class="cycleEntry"><span>${e.label}</span><button class="cycleBtn" onclick="cycleDelete('${e.type}','${e.date}')">删除</button></div>`).join(''):'<p style="color:#8b7c6c;font-size:13px">还没有记录</p>';host.innerHTML=html+'</div>';
+}
+window.cycleMove=n=>{month+=n;if(month<0){month=11;year--}if(month>11){month=0;year++}render()};
+window.cyclePick=d=>{chosen=d;render()};
+window.cycleEdit=()=>{$c('cycleFormPanel')?.scrollIntoView({behavior:'smooth',block:'center'})};
+window.cycleSavePeriod=()=>{const a=$c('cycleStart').value,b=$c('cycleEnd').value;if(!a)return alert('请选择开始日期');if(b&&b<a)return alert('结束日期不能早于开始日期');if(b&&diff(b,a)>20)return alert('请检查经期日期');state.periods=state.periods.filter(x=>x.start!==a);state.periods.push({start:a,end:b});save();render()};
+window.cycleSaveOvulation=()=>{const d=$c('cycleOvDate').value;if(!d)return alert('请选择排卵日期');if(!state.ovulations.some(x=>x.date===d))state.ovulations.push({date:d});save();render()};
+window.cycleSaveSettings=()=>{const a=Number($c('cycleLength').value),b=Number($c('cycleDaysCount').value);if(a<15||a>60||b<1||b>15)return alert('请检查周期天数');state.length=a;state.days=b;save();render()};
+window.cycleDelete=(type,d)=>{if(!confirm('确定删除这条记录？'))return;const key=type==='period'?'periods':'ovulations';state[key]=state[key].filter(x=>(x.start||x.date)!==d);save();render()};
+function switchCycle(on){const ids=['builtinCopyActions','medicalActions','specialActions','shoppingActions','customActions','customDeleteActions','bodyTrack','cleaningPage','list'];if(on){window._cycleDisplays={};ids.forEach(id=>{const e=$c(id);if(e){window._cycleDisplays[id]=e.style.display;e.style.display='none'}});const sh=document.querySelector('.sectionHead');if(sh){window._cycleHeadDisplay=sh.style.display;sh.style.display='none'}$c('cyclePage').classList.add('show');render()}else{$c('cyclePage').classList.remove('show');if(window._cycleDisplays){ids.forEach(id=>{const e=$c(id);if(e)e.style.display=window._cycleDisplays[id]||''});window._cycleDisplays=null}const sh=document.querySelector('.sectionHead');if(sh&&window._cycleHeadDisplay!==undefined)sh.style.display=window._cycleHeadDisplay}}
+const old=window.setFilter;window.setFilter=function(f,btn){if(f==='cycle'){window.currentFilter='cycle';document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));switchCycle(true);window.notesRefreshNav?.();return}switchCycle(false);return old.apply(this,arguments)};
+document.addEventListener('DOMContentLoaded',()=>{const nav=$c('notesBottomNav');const more=nav?.querySelector('[data-page="more"]');if(nav&&more){const b=document.createElement('button');b.dataset.page='cycle';b.innerHTML='<span class="navIcon">🌸</span>经期';b.onclick=()=>window.notesGo('cycle');nav.insertBefore(b,more)}const wrap=document.querySelector('.wrap');const page=document.createElement('div');page.id='cyclePage';wrap.appendChild(page);render()});
+})();
+</script>
+</body>
 </html>
