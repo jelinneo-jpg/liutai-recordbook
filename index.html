@@ -469,7 +469,15 @@ body:has(#cleaningPage:not(.hidden)) .sectionHead{display:none!important}
 .cycleModalHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:18px}
 .cycleModalHeader button{border:0;background:#f4eadc;border-radius:10px;padding:8px 13px;font-size:18px}
 .cycleCloseBottom{width:100%;padding:12px;border:0;background:#f2e5d2;border-radius:12px;font-weight:700;margin-top:12px}
-</style></head>
+</style><style>
+/* Cycle tab: never display medical-only toolbar, and highlight only cycle. */
+body:has(#cyclePage.show) #builtinCopyActions,
+body:has(#cyclePage.show) #medicalActions,
+body:has(#cyclePage.show) #medicalMoneyTopBtn {display:none!important}
+body:has(#cyclePage.show) #notesBottomNav button.active:not([data-page="cycle"]){background:transparent!important;color:#756555!important}
+body:has(#cyclePage.show) #notesBottomNav button[data-page="cycle"]{background:#f1dfc4!important;color:#493c31!important}
+</style>
+</head>
 <body>
 <div class="wrap">
   <div class="header">
@@ -2701,7 +2709,7 @@ function cleaningMenu(id){openCleaningForm(id)}
 <div id="notesMoreOverlay" onclick="if(event.target===this)notesCloseMore()"><div id="notesMorePanel" role="dialog" aria-label="更多页面"><div style="display:flex;align-items:center;justify-content:space-between"><b style="font-size:19px">📂 更多页面</b><button class="smallBtn" onclick="notesCloseMore()">✕ 关闭</button></div><div id="notesMoreGrid"></div></div></div>
 <script>
 (function(){
- const primary=['shopping','kitchen','life','medical'];
+ const primary=['shopping','kitchen','life','medical','cycle'];
  window.notesCloseMore=function(){document.getElementById('notesMoreOverlay').classList.remove('show')};
  window.notesRefreshNav=function(){
   const current=typeof currentFilter==='string'?currentFilter:'life';
@@ -3008,7 +3016,12 @@ window.setFilter=function(f,btn){
    document.body.classList.remove('recordsOnlyScroll');
    document.documentElement.style.overflowY='auto';
    document.body.style.overflowY='auto';
+   // Keep the cycle navigation and medical-only controls in sync.
+   document.body.classList.remove('notesMedicalButtons');
+   const medicalToolbar=document.getElementById('builtinCopyActions');
+   if(medicalToolbar)medicalToolbar.style.setProperty('display','none','important');
    window.notesRefreshNav?.();
+   document.querySelectorAll('#notesBottomNav button').forEach(b=>b.classList.toggle('active',b.dataset.page==='cycle'));
    return;
  }
  switchCycle(false);
