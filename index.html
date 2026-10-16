@@ -2909,7 +2909,7 @@ body.notesMedicalButtons #builtinCopyBtn{order:4!important;margin-left:auto!impo
 #notesBottomNav{grid-template-columns:repeat(6,minmax(0,1fr))!important}
 #notesBottomNav button{font-size:11px!important;padding:5px 1px!important}
 #cyclePage{display:none;padding-bottom:110px}
-#cyclePage.show{display:block}
+#cyclePage.show{display:block;overflow-y:auto!important;max-height:calc(100dvh - 170px);-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain}
 .cyclePanel{background:#fffdf8;border:1px solid #eadcc8;border-radius:20px;padding:15px;margin:10px 0;box-shadow:0 5px 16px #533e2510}
 .cycleHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .cycleHead button,.cycleBtn{border:0;border-radius:11px;background:#f2e5d2;color:#544538;padding:9px 12px;font-weight:700}
@@ -2957,7 +2957,24 @@ window.cycleSaveOvulation=()=>{const d=$c('cycleOvDate').value;if(!d)return aler
 window.cycleSaveSettings=()=>{const a=Number($c('cycleLength').value),b=Number($c('cycleDaysCount').value);if(a<15||a>60||b<1||b>15)return alert('请检查周期天数');state.length=a;state.days=b;save();render()};
 window.cycleDelete=(type,d)=>{if(!confirm('确定删除这条记录？'))return;const key=type==='period'?'periods':'ovulations';state[key]=state[key].filter(x=>(x.start||x.date)!==d);save();render()};
 function switchCycle(on){const ids=['builtinCopyActions','medicalActions','specialActions','shoppingActions','customActions','customDeleteActions','bodyTrack','cleaningPage','list'];if(on){window._cycleDisplays={};ids.forEach(id=>{const e=$c(id);if(e){window._cycleDisplays[id]=e.style.display;e.style.display='none'}});const sh=document.querySelector('.sectionHead');if(sh){window._cycleHeadDisplay=sh.style.display;sh.style.display='none'}$c('cyclePage').classList.add('show');render()}else{$c('cyclePage').classList.remove('show');if(window._cycleDisplays){ids.forEach(id=>{const e=$c(id);if(e)e.style.display=window._cycleDisplays[id]||''});window._cycleDisplays=null}const sh=document.querySelector('.sectionHead');if(sh&&window._cycleHeadDisplay!==undefined)sh.style.display=window._cycleHeadDisplay}}
-const old=window.setFilter;window.setFilter=function(f,btn){if(f==='cycle'){window.currentFilter='cycle';document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));switchCycle(true);window.notesRefreshNav?.();return}switchCycle(false);return old.apply(this,arguments)};
+const old=window.setFilter;
+window.setFilter=function(f,btn){
+ if(f==='cycle'){
+   window.currentFilter='cycle';
+   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+   switchCycle(true);
+   document.documentElement.classList.remove('recordsOnlyScroll');
+   document.body.classList.remove('recordsOnlyScroll');
+   document.documentElement.style.overflowY='auto';
+   document.body.style.overflowY='auto';
+   window.notesRefreshNav?.();
+   return;
+ }
+ switchCycle(false);
+ document.documentElement.style.overflowY='';
+ document.body.style.overflowY='';
+ return old.apply(this,arguments);
+};
 document.addEventListener('DOMContentLoaded',()=>{const nav=$c('notesBottomNav');const more=nav?.querySelector('[data-page="more"]');if(nav&&more){const b=document.createElement('button');b.dataset.page='cycle';b.innerHTML='<span class="navIcon">🌸</span>经期';b.onclick=()=>window.notesGo('cycle');nav.insertBefore(b,more)}const wrap=document.querySelector('.wrap');const page=document.createElement('div');page.id='cyclePage';wrap.appendChild(page);render()});
 })();
 </script>
