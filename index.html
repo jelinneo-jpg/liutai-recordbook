@@ -1013,7 +1013,7 @@ function setFilter(f,btn){
  if($('medicalCopyDeleteTopBtn')) $('medicalCopyDeleteTopBtn').style.display='none';
  if($('shoppingAddTopBtn')) $('shoppingAddTopBtn').style.display='none';
  if($('shoppingAddInline')) $('shoppingAddInline').style.display=shopping?'inline-block':'none';
- if($('shoppingKitchenInline')) $('shoppingKitchenInline').style.display=(f==='kitchen')?'inline-block':'none';
+ if($('shoppingKitchenInline')) $('shoppingKitchenInline').style.display='none';
  syncMedicalCopySectionMascot(cp,layout);
  syncSpecialSectionMascot(f,cp,layout);
  syncShoppingSectionMascot(f,cp,layout);
@@ -1558,7 +1558,7 @@ function render(){
    </div></div>`;
   };
   if(currentFilter==='kitchen'){
-   $('list').innerHTML=`<div class="shoppingWorkCard shopCompact"><div class="shopPeriodTabs"><button class="${kitchenSectionView==='menu'?'active':''}" onclick="changeKitchenSection('menu')">🍱 点菜单</button><button class="${kitchenSectionView==='pantry'?'active':''}" onclick="changeKitchenSection('pantry')">🥬 我的食材</button></div><div class="shoppingWorkSection"><div class="shoppingWorkSectionHead"><h3>待购买 <span class="count">(${pending.length})</span></h3></div><div class="shopCompactItems">${pending.map(item).join('')||'<div class="shoppingWorkEmpty">暂无待购买食材</div>'}</div></div><div class="shopDoneArea"><button class="shopDoneToggle" onclick="window.kitchenDoneExpanded=!window.kitchenDoneExpanded;render()"><b>已完成 (${done.length})</b><span>${window.kitchenDoneExpanded?'⌃':'⌄'}</span></button>${window.kitchenDoneExpanded?`<div class="shopCompactItems">${done.map(item).join('')}</div>${done.length?'<button class="smallBtn" style="margin-top:9px" onclick="deleteAllCompletedKitchen()">🗑️ 一键删除已完成</button>':''}`:''}</div></div>`;
+   $('list').innerHTML=`<div class="shoppingWorkCard shopCompact"><div class="shopPeriodTabs"><button class="${kitchenSectionView==='menu'?'active':''}" onclick="changeKitchenSection('menu')">🍱 点菜单</button><button class="${kitchenSectionView==='pantry'?'active':''}" onclick="changeKitchenSection('pantry')">🥬 我的食材</button></div><div class="shoppingWorkSection"><div class="shoppingWorkSectionHead"><h3>待购买 <span class="count">(${pending.length})</span></h3>${kitchenSectionView==='menu'?'<button class="smallBtn" style="padding:9px 11px;border-radius:12px;font-weight:700;white-space:nowrap" onclick="generateShoppingFromKitchen()">🍳 从刘太厨房生成</button>':''}</div><div class="shopCompactItems">${pending.map(item).join('')||'<div class="shoppingWorkEmpty">暂无待购买食材</div>'}</div></div><div class="shopDoneArea"><button class="shopDoneToggle" onclick="window.kitchenDoneExpanded=!window.kitchenDoneExpanded;render()"><b>已完成 (${done.length})</b><span>${window.kitchenDoneExpanded?'⌃':'⌄'}</span></button>${window.kitchenDoneExpanded?`<div class="shopCompactItems">${done.map(item).join('')}</div>${done.length?'<button class="smallBtn" style="margin-top:9px" onclick="deleteAllCompletedKitchen()">🗑️ 一键删除已完成</button>':''}`:''}</div></div>`;
   }else if(currentFilter==='shopping'&&!cp){
    // 主购物清单分成「刘太厨房」和「我的购物清单」；旧版厨房项目以 shk 开头，也自动归入厨房区。
    const isKitchen=r=>r.source==='kitchen'||String(r.id||'').startsWith('shk');
