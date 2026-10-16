@@ -2750,6 +2750,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
 <style>
 /* 购物页面：物品列表切换放在小白左侧，不影响平时/周末购买 */
+body.shoppingSwitchView .sectionHead:has(#listTitle){display:none!important}
 #shoppingItemSwitch{display:none;gap:6px;align-items:center;min-width:0;flex:0 1 auto}
 #shoppingItemSwitch button{border:1px solid #e5d7c3;border-radius:11px;background:#fffaf1;color:#625344;padding:8px 9px;font-size:12px;font-weight:700;white-space:nowrap}
 #shoppingItemSwitch button.active{background:#58493d;color:#fff;border-color:#58493d}
@@ -2765,6 +2766,7 @@ document.addEventListener('DOMContentLoaded',function(){
   const sw=document.getElementById('shoppingItemSwitch');
   if(!row||!sw)return;
   const visible=f==='shopping'||f==='itemList';
+  document.body.classList.toggle('shoppingSwitchView',f==='shopping');
   sw.style.display=visible?'flex':'none';
   row.classList.toggle('itemListSwitchOnly',f==='itemList');
   if(f==='itemList')row.style.display='flex';
