@@ -1325,6 +1325,15 @@ function deleteAllCompletedShopping(){
  saveAll();render();
 }
 
+function deleteAllCompletedKitchen(){
+ const completed=records.filter(r=>r.category==='shopping'&&!r.customPageId&&isKitchenShoppingRecord(r)&&r.done);
+ if(!completed.length)return;
+ if(!confirm(`确定一键删除刘太厨房全部已完成项目吗？\n共 ${completed.length} 项`))return;
+ const ids=new Set(completed.map(r=>r.id));
+ records=records.filter(r=>!ids.has(r.id));
+ saveAll();render();
+}
+
 function toggleXiaobaiPageMenu(event){
  event?.stopPropagation();
  const old=document.getElementById('xiaobaiPageMenu');
@@ -1529,7 +1538,7 @@ function render(){
    </div></div>`;
   };
   if(currentFilter==='kitchen'){
-   $('list').innerHTML=`<div class="shoppingWorkCard shopCompact"><div class="shopPeriodTabs"><button class="${kitchenSectionView==='menu'?'active':''}" onclick="changeKitchenSection('menu')">🍱 点菜单</button><button class="${kitchenSectionView==='pantry'?'active':''}" onclick="changeKitchenSection('pantry')">🥬 我的食材</button></div><div class="shoppingWorkSection"><div class="shoppingWorkSectionHead"><h3>待购买 <span class="count">(${pending.length})</span></h3></div><div class="shopCompactItems">${pending.map(item).join('')||'<div class="shoppingWorkEmpty">暂无待购买食材</div>'}</div></div><div class="shopDoneArea"><button class="shopDoneToggle" onclick="window.kitchenDoneExpanded=!window.kitchenDoneExpanded;render()"><b>已完成 (${done.length})</b><span>${window.kitchenDoneExpanded?'⌃':'⌄'}</span></button>${window.kitchenDoneExpanded?`<div class="shopCompactItems">${done.map(item).join('')}</div>`:''}</div></div>`;
+   $('list').innerHTML=`<div class="shoppingWorkCard shopCompact"><div class="shopPeriodTabs"><button class="${kitchenSectionView==='menu'?'active':''}" onclick="changeKitchenSection('menu')">🍱 点菜单</button><button class="${kitchenSectionView==='pantry'?'active':''}" onclick="changeKitchenSection('pantry')">🥬 我的食材</button></div><div class="shoppingWorkSection"><div class="shoppingWorkSectionHead"><h3>待购买 <span class="count">(${pending.length})</span></h3></div><div class="shopCompactItems">${pending.map(item).join('')||'<div class="shoppingWorkEmpty">暂无待购买食材</div>'}</div></div><div class="shopDoneArea"><button class="shopDoneToggle" onclick="window.kitchenDoneExpanded=!window.kitchenDoneExpanded;render()"><b>已完成 (${done.length})</b><span>${window.kitchenDoneExpanded?'⌃':'⌄'}</span></button>${window.kitchenDoneExpanded?`<div class="shopCompactItems">${done.map(item).join('')}</div>${done.length?'<button class="smallBtn" style="margin-top:9px" onclick="deleteAllCompletedKitchen()">🗑️ 一键删除已完成</button>':''}`:''}</div></div>`;
   }else if(currentFilter==='shopping'&&!cp){
    // 主购物清单分成「刘太厨房」和「我的购物清单」；旧版厨房项目以 shk 开头，也自动归入厨房区。
    const isKitchen=r=>r.source==='kitchen'||String(r.id||'').startsWith('shk');
@@ -2705,13 +2714,10 @@ function cleaningMenu(id){openCleaningForm(id)}
    const page=match?.[1]||tab.dataset.filter;
    if(!page||primary.includes(page))return;
    const button=document.createElement('button');
-   const mascot=tab.querySelector('img');if(mascot){const clone=mascot.cloneNode(true);clone.style.cssText='width:28px;height:28px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px';button.appendChild(clone)}button.appendChild(document.createTextNode((tab.textContent||'').trim()||page));
+   const mascot=tab.querySelector('img');if(mascot){const clone=mascot.cloneNode(true);clone.style.cssText='width:28px;height:28px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px';button.appendChild(clone)}button.appendChild(document.createTextNode(({special:'日子',bodytrack:'体重',cleaning:'打扫'}[page])||((tab.textContent||'').trim()||page)));
    button.onclick=()=>{notesCloseMore();setFilter(page,tab);notesRefreshNav()};
    grid.appendChild(button);
   });
-  const add=document.createElement('button');add.textContent='＋ 添加页面';
-  add.onclick=()=>{notesCloseMore();const candidate=document.querySelector('[onclick*="addCustomPage"], [onclick*="openAddPage"]');if(candidate)candidate.click();else alert('请使用原本的新增页面功能')};
-  grid.appendChild(add);
   document.getElementById('notesMoreOverlay').classList.add('show');
  };
  const original=setFilter;
