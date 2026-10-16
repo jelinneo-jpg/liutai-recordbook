@@ -2747,5 +2747,54 @@ document.addEventListener('DOMContentLoaded',function(){
   if(nav&&header)header.insertAdjacentElement('afterend',nav);
 });
 </script>
+
+<style>
+/* 购物页面：物品列表切换放在小白左侧，不影响平时/周末购买 */
+#shoppingItemSwitch{display:none;gap:6px;align-items:center;min-width:0;flex:0 1 auto}
+#shoppingItemSwitch button{border:1px solid #e5d7c3;border-radius:11px;background:#fffaf1;color:#625344;padding:8px 9px;font-size:12px;font-weight:700;white-space:nowrap}
+#shoppingItemSwitch button.active{background:#58493d;color:#fff;border-color:#58493d}
+#builtinCopyActions.itemListSwitchOnly{display:flex!important}
+#builtinCopyActions.itemListSwitchOnly > :not(#shoppingItemSwitch){display:none!important}
+@media(max-width:390px){#shoppingItemSwitch button{font-size:11px;padding:8px 7px}}
+</style>
+<script>
+(function(){
+ function updateShoppingSwitch(){
+  const f=typeof currentFilter==='string'?currentFilter:'';
+  const row=document.getElementById('builtinCopyActions');
+  const sw=document.getElementById('shoppingItemSwitch');
+  if(!row||!sw)return;
+  const visible=f==='shopping'||f==='itemList';
+  sw.style.display=visible?'flex':'none';
+  row.classList.toggle('itemListSwitchOnly',f==='itemList');
+  if(f==='itemList')row.style.display='flex';
+  sw.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.target===f));
+  const nav=document.querySelector('#notesBottomNav button[data-page="shopping"]');
+  if(nav&&f==='itemList'){
+   document.querySelectorAll('#notesBottomNav button').forEach(b=>b.classList.remove('active'));
+   nav.classList.add('active');
+  }
+ }
+ document.addEventListener('DOMContentLoaded',function(){
+  const row=document.getElementById('builtinCopyActions');
+  const mascot=document.getElementById('builtinCopyBtn');
+  if(!row||!mascot)return;
+  const sw=document.createElement('div');sw.id='shoppingItemSwitch';
+  sw.innerHTML=`<button type="button" data-target="shopping" onclick="notesGo('shopping')">🛒 购物清单</button><button type="button" data-target="itemList" onclick="notesGo('itemList')">📦 物品列表</button>`;
+  row.insertBefore(sw,mascot);
+  const previousSetFilter=window.setFilter;
+  window.setFilter=function(){const result=previousSetFilter.apply(this,arguments);updateShoppingSwitch();return result};
+  const previousRender=window.render;
+  if(typeof previousRender==='function')window.render=function(){const result=previousRender.apply(this,arguments);updateShoppingSwitch();return result};
+  const previousMore=window.notesOpenMore;
+  if(typeof previousMore==='function')window.notesOpenMore=function(){
+   previousMore();
+   const grid=document.getElementById('notesMoreGrid');
+   if(grid)[...grid.querySelectorAll('button')].forEach(b=>{if(b.textContent.includes('物品列表'))b.remove()});
+  };
+  updateShoppingSwitch();
+ });
+})();
+</script>
 </body>
 </html>
