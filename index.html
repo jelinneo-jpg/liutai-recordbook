@@ -2750,7 +2750,6 @@ document.addEventListener('DOMContentLoaded',function(){
 
 <style>
 /* 购物页面：物品列表切换放在小白左侧，不影响平时/周末购买 */
-body.shoppingSwitchView .sectionHead:has(#listTitle){display:none!important}
 #shoppingItemSwitch{display:none;gap:6px;align-items:center;min-width:0;flex:0 1 auto}
 #shoppingItemSwitch button{border:1px solid #e5d7c3;border-radius:11px;background:#fffaf1;color:#625344;padding:8px 9px;font-size:12px;font-weight:700;white-space:nowrap}
 #shoppingItemSwitch button.active{background:#58493d;color:#fff;border-color:#58493d}
@@ -2766,11 +2765,10 @@ body.shoppingSwitchView .sectionHead:has(#listTitle){display:none!important}
   const sw=document.getElementById('shoppingItemSwitch');
   if(!row||!sw)return;
   const visible=f==='shopping'||f==='itemList';
-  document.body.classList.toggle('shoppingSwitchView',f==='shopping');
   sw.style.display=visible?'flex':'none';
   row.classList.toggle('itemListSwitchOnly',f==='itemList');
   if(f==='itemList')row.style.display='flex';
-  sw.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.target===f));
+  sw.querySelectorAll('button').forEach(b=>{b.classList.toggle('active',b.dataset.target===f);b.style.display=(b.dataset.target===f)?'none':'';});
   const nav=document.querySelector('#notesBottomNav button[data-page="shopping"]');
   if(nav&&f==='itemList'){
    document.querySelectorAll('#notesBottomNav button').forEach(b=>b.classList.remove('active'));
@@ -2795,6 +2793,34 @@ body.shoppingSwitchView .sectionHead:has(#listTitle){display:none!important}
    if(grid)[...grid.querySelectorAll('button')].forEach(b=>{if(b.textContent.includes('物品列表'))b.remove()});
   };
   updateShoppingSwitch();
+ });
+})();
+</script>
+
+<style>
+/* 原本的购物标题及小新照片完整保留 */
+#listTitle .kitchenTitleMascot{width:30px;height:30px;object-fit:contain;vertical-align:middle;margin-right:7px;border-radius:50%}
+</style>
+<script>
+(function(){
+ function kitchenMascot(){
+   if(typeof currentFilter==='undefined'||currentFilter!=='kitchen')return;
+   const source=document.querySelector('#notesBottomNav button[data-page="kitchen"] img');
+   const title=document.getElementById('listTitle');
+   if(!source||!title)return;
+   if(title.querySelector('.kitchenTitleMascot'))return;
+   const image=document.createElement('img');image.className='kitchenTitleMascot';image.alt='厨师小新';image.src=source.src;
+   for(const node of Array.from(title.childNodes)){
+     if(node.nodeType===3)node.textContent=node.textContent.replace(/^\s*🍳\s*/, '');
+   }
+   title.insertBefore(image,title.firstChild);
+ }
+ document.addEventListener('DOMContentLoaded',function(){
+   const title=document.getElementById('listTitle');
+   if(title)new MutationObserver(kitchenMascot).observe(title,{childList:true});
+   const old=window.setFilter;
+   if(typeof old==='function')window.setFilter=function(){const result=old.apply(this,arguments);kitchenMascot();return result;};
+   kitchenMascot();
  });
 })();
 </script>
