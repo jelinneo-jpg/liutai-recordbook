@@ -2871,5 +2871,27 @@ document.addEventListener('DOMContentLoaded',function(){
  syncMedical();
 });
 </script>
+
+<style>
+/* 更多页面：只缩窄宽度，保留按钮高度 */
+#notesMoreGrid{grid-template-columns:repeat(2,minmax(0,125px))!important;gap:8px!important;justify-content:start!important}
+#notesMoreGrid button{min-height:55px!important}
+@media(max-width:340px){#notesMoreGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+/* 医疗：小白最左，后面依次是新增、配套、金钱 */
+body.notesMedicalButtons #builtinCopyActions{display:flex!important;gap:6px!important;justify-content:flex-start!important}
+body.notesMedicalButtons #builtinCopyBtn{order:-10!important;margin-left:0!important;margin-right:3px!important;flex:0 0 auto!important}
+body.notesMedicalButtons #doctorActionBtn{order:-9!important}
+body.notesMedicalButtons #packageActionBtn{order:-8!important}
+body.notesMedicalButtons #medicalMoneyTopBtn{order:-7!important;margin-left:0!important;flex:0 0 auto!important}
+@media(max-width:390px){body.notesMedicalButtons #builtinCopyBtn{padding:2px!important}body.notesMedicalButtons #builtinCopyActions{gap:4px!important}}
+</style>
+<style>
+/* 医疗工具栏：新增、配套、金钱、小白（最右） */
+body.notesMedicalButtons #builtinCopyActions{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:6px!important;width:100%!important}
+body.notesMedicalButtons #doctorActionBtn{order:1!important}
+body.notesMedicalButtons #packageActionBtn{order:2!important}
+body.notesMedicalButtons #medicalMoneyTopBtn{order:3!important;margin-left:0!important}
+body.notesMedicalButtons #builtinCopyBtn{order:4!important;margin-left:auto!important;margin-right:0!important;flex:0 0 auto!important}
+</style>
 </body>
 </html>
