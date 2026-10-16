@@ -3039,5 +3039,91 @@ const quick=document.createElement('div');quick.id='cycleQuickModal';quick.class
 quick.addEventListener('click',e=>{if(e.target===quick)window.cycleQuickClose()});document.body.appendChild(quick);render()});
 })();
 </script>
+<style>
+/* 统一编辑页面：删除按钮固定在表单下方，新增记录时隐藏 */
+.unifiedDelete{display:none;width:100%;margin-top:14px;padding:12px 14px;border:1px solid #f0c8c1;border-radius:13px;background:#fff0ed;color:#a44940;font-weight:750;font-size:15px}
+.unifiedDelete.visible{display:block}
+</style>
+<script>
+/* 编辑与删除整合：原有表单、储存方式和删除确认均保持不变 */
+(function(){
+  const $id=id=>document.getElementById(id);
+  const configs={
+    formModal:{get:()=>$id('editId')?.value,remove:id=>{deleteRecord(id);closeForm()}},
+    shoppingModal:{get:()=>typeof editingShopping!=='undefined'&&editingShopping,remove:id=>{deleteShopping(id);closeShoppingForm()}},
+    medicalRecordModal:{get:()=>$id('medicalRecordId')?.value,remove:id=>{deleteMedicalRecord(id);closeMedicalRecordForm()}},
+    packageModal:{get:()=>$id('packageEditId')?.value,remove:id=>{deletePackage(id);closePackageForm()}},
+    specialModal:{get:()=>typeof editingSpecial!=='undefined'&&editingSpecial,remove:id=>{deleteSpecial(id);closeSpecialForm()}},
+    customRecordModal:{get:()=>typeof editingCustomRecord!=='undefined'&&editingCustomRecord,remove:id=>{deleteCustomRecord(id);closeCustomRecordForm()}},
+    memoModal:{get:()=>typeof editingMemoId!=='undefined'&&editingMemoId,remove:id=>{
+      if(!confirm('确定删除这条记录吗？'))return;
+      records=records.filter(x=>String(x.id)!==String(id));saveAll();closeMemoForm();render();
+    }},
+    bodyTrackModal:{get:()=>$id('bodyTrackId')?.value,remove:id=>{deleteBodyTrack(id);closeBodyTrackForm()}},
+    cleaningModal:{get:()=>$id('cleaningId')?.value,remove:()=>deleteCleaningFromForm()}
+  };
+  function init(){
+    Object.entries(configs).forEach(([modalId,cfg])=>{
+      const modal=$id(modalId);if(!modal)return;
+      let btn=modal.querySelector('.unifiedDelete');
+      if(!btn){btn=document.createElement('button');btn.type='button';btn.className='unifiedDelete';btn.textContent='🗑️ 删除这条记录';
+        (modal.querySelector('.sheet,.box')||modal).appendChild(btn);
+        btn.addEventListener('click',()=>{const id=cfg.get();if(id)cfg.remove(id)});
+      }
+      const refresh=()=>btn.classList.toggle('visible',!!cfg.get()&&modal.classList.contains('show'));
+      new MutationObserver(refresh).observe(modal,{attributes:true,attributeFilter:['class']});
+      modal.addEventListener('click',()=>setTimeout(refresh,0));
+      refresh();
+    });
+    // 历史记录中的 ⋯/⚙️ 直接打开原有编辑表单，不再显示编辑/删除下拉菜单。
+    document.addEventListener('click',e=>{
+      const trigger=e.target.closest('button.moreBtn,button[onclick*="toggleMore"],button[onclick*="cycleHistoryMenu"]');
+      if(!trigger)return;
+      const wrap=trigger.closest('.moreWrap');
+      const menu=wrap?.querySelector('.moreMenu');
+      const edit=menu&&Array.from(menu.querySelectorAll('button')).find(b=>/编辑|修改/.test(b.textContent));
+      if(!edit)return;
+      e.preventDefault();e.stopImmediatePropagation();
+      edit.click();
+    },true);
+    // 经期历史：⚙️ 直接进入编辑页面，删除按钮置于页面底部；🔔 仍然独立。
+    document.addEventListener('click',e=>{
+      const trigger=e.target.closest('button[title="记录设置"]');
+      if(!trigger)return;
+      const wrap=trigger.parentElement;
+      const edit=wrap?.querySelector('.moreMenu button[onclick*="cycleEditEntry"]');
+      if(!edit)return;
+      e.preventDefault();e.stopImmediatePropagation();
+      const match=edit.getAttribute('onclick').match(/cycleEditEntry\('([^']+)'\s*,\s*'([^']+)'\)/);
+      if(!match)return;
+      window._unifiedCycleEditing={type:match[1],date:match[2]};
+      edit.click();
+      setTimeout(refreshCycleDelete,0);
+    },true);
+    const cycle=$id('cycleRecordModal');
+    if(cycle){
+      const btn=document.createElement('button');btn.className='unifiedDelete';btn.type='button';btn.textContent='🗑️ 删除这条记录';
+      (cycle.querySelector('.cycleModalSheet')||cycle).appendChild(btn);
+      btn.addEventListener('click',()=>{
+        const entry=window._unifiedCycleEditing;if(!entry)return;
+        if(!confirm('确定删除这条记录？'))return;
+        // 保留原有经期记录删除和储存逻辑，避免重复确认。
+        const oldConfirm=window.confirm;
+        try{window.confirm=()=>true;cycleDelete(entry.type,entry.date)}finally{window.confirm=oldConfirm}
+        window._unifiedCycleEditing=null;cycleClose();
+      });
+      function refreshCycleDelete(){btn.classList.toggle('visible',!!window._unifiedCycleEditing&&cycle.classList.contains('show'))}
+      window.refreshCycleDelete=refreshCycleDelete;
+      new MutationObserver(refreshCycleDelete).observe(cycle,{attributes:true,attributeFilter:['class']});
+      document.addEventListener('click',e=>{
+        if(e.target.closest('button[onclick*="cycleEdit()"],button[onclick*="cycleSettings"]')){
+          window._unifiedCycleEditing=null;setTimeout(refreshCycleDelete,0);
+        }
+      },true);
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
 </body>
 </html>
