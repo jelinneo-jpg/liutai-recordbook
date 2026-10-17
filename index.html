@@ -3284,5 +3284,40 @@ body:has(#medicalActions:not(.hidden)) #listTitle img.sectionMascot{
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
 })();
 </script>
+
+<style id="more-subpage-nav-mascot-style">
+#notesBottomNav button[data-page="more"].subpageMascotSelected .navIcon img.bottomMascot{width:49px!important;height:47px!important;object-fit:contain!important}
+</style>
+<script id="more-subpage-nav-mascot-sync">
+(function(){
+ function init(){
+  const nav=document.querySelector('#notesBottomNav button[data-page="more"]');
+  const icon=nav?.querySelector('img.bottomMascot');
+  if(!icon)return;
+  const defaultImage=icon.getAttribute('src');
+  function sync(){
+   const filter=typeof currentFilter==='string'?currentFilter:'';
+   const page=filter.startsWith('custom:')?(typeof currentCustomPage==='function'?currentCustomPage():null):null;
+   const isSpecial=filter==='special'||(page&&page.layout==='special');
+   const isBody=filter==='bodytrack';
+   const isCleaning=filter==='cleaning';
+   let image=null;
+   if(isBody)image=document.querySelector('#bodyTrack .bodyTrackHeading h3 img');
+   else if(isCleaning)image=document.querySelector('#cleaningPage .cleanHead h3 img');
+   else if(isSpecial)image=document.querySelector('#listTitle img');
+   if(image?.src){if(icon.src!==image.src)icon.src=image.src;nav.classList.add('subpageMascotSelected');}
+   else{if(icon.getAttribute('src')!==defaultImage)icon.src=defaultImage;nav.classList.remove('subpageMascotSelected');}
+  }
+  const oldSetFilter=window.setFilter;
+  if(typeof oldSetFilter==='function')window.setFilter=function(){const result=oldSetFilter.apply(this,arguments);sync();requestAnimationFrame(sync);return result;};
+  const oldRefresh=window.notesRefreshNav;
+  if(typeof oldRefresh==='function')window.notesRefreshNav=function(){const result=oldRefresh.apply(this,arguments);sync();return result;};
+  ['bodyTrack','cleaningPage','listTitle'].forEach(id=>{const el=document.getElementById(id);if(el)new MutationObserver(()=>requestAnimationFrame(sync)).observe(el,{childList:true,subtree:false});});
+  document.querySelectorAll('#notesBottomNav button').forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(sync)));
+  sync();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
 </body>
 </html>
