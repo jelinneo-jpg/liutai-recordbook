@@ -560,18 +560,8 @@ body:has(#cyclePage.show) #notesBottomNav button[data-page="cycle"]{background:#
 #notesBottomNav button .navIcon{height:48px!important;min-height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important}
 #notesBottomNav button .navIcon img.bottomMascot{width:48px!important;height:44px!important;max-width:none!important;object-fit:contain!important;object-position:center!important;transform:none!important}
 #notesBottomNav button[data-page="kitchen"] .navIcon img.bottomMascot{width:48px!important;height:44px!important}
-</style><style id="chef-reference-visual-calibration">#notesBottomNav button .navIcon{height:48px!important;min-height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important}#notesBottomNav button img.bottomMascot,#notesBottomNav button[data-page="kitchen"] img.bottomMascot{width:48px!important;height:44px!important;max-width:none!important;object-fit:contain!important;object-position:center bottom!important;transform:none!important}#notesBottomNav button{justify-content:flex-end!important;align-items:center!important;gap:4px!important}</style><style id="mascot-user-final-alignment-20261017">
-/* 只调整导航小新，不替换或绘制图片。以厨房为基准。 */
-#notesBottomNav button .navIcon{height:54px!important;min-height:54px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important;flex:0 0 54px!important}
-#notesBottomNav button .bottomMascot{transform-origin:center center!important;object-position:center center!important;vertical-align:middle!important}
-#notesBottomNav button[data-page="shopping"] .bottomMascot{transform:translateY(3px) scale(.80)!important}
-#notesBottomNav button[data-page="life"] .bottomMascot{transform:translateY(2px) scale(.88)!important}
-#notesBottomNav button[data-page="medical"] .bottomMascot{transform:translateY(2px) scale(.80)!important}
-#notesBottomNav button[data-page="cycle"] .bottomMascot{transform:translateY(2px) scale(.82)!important}
-#notesBottomNav button[data-page="kitchen"] .bottomMascot,
-#notesBottomNav button[data-page="more"] .bottomMascot{transform:none!important}
-#notesBottomNav button{justify-content:flex-end!important;align-items:center!important;gap:3px!important}
-</style>
+</style><style id="chef-reference-visual-calibration">#notesBottomNav button .navIcon{height:48px!important;min-height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important}#notesBottomNav button img.bottomMascot,#notesBottomNav button[data-page="kitchen"] img.bottomMascot{width:48px!important;height:44px!important;max-width:none!important;object-fit:contain!important;object-position:center bottom!important;transform:none!important}#notesBottomNav button{justify-content:flex-end!important;align-items:center!important;gap:4px!important}</style>
+
 </head>
 <body>
 <div class="wrap">
@@ -3173,5 +3163,18 @@ quick.addEventListener('click',e=>{if(e.target===quick)window.cycleQuickClose()}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
+<style id="nav-mascot-stable-20261017">
+/* 固定导航布局；只对图像作视觉缩放，脚底齐平。 */
+#notesBottomNav button{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-end!important;gap:3px!important;min-width:0!important;}
+#notesBottomNav button .navIcon{position:relative!important;display:block!important;width:100%!important;height:54px!important;min-height:54px!important;flex:0 0 54px!important;overflow:visible!important;}
+#notesBottomNav button .navIcon img.bottomMascot{position:absolute!important;left:50%!important;bottom:0!important;top:auto!important;margin:0!important;display:block!important;object-fit:contain!important;object-position:center bottom!important;transform-origin:center bottom!important;}
+#notesBottomNav button[data-page="shopping"] .bottomMascot{transform:translateX(-50%) scale(.80)!important}
+#notesBottomNav button[data-page="kitchen"] .bottomMascot{transform:translateX(-50%)!important}
+#notesBottomNav button[data-page="life"] .bottomMascot{transform:translateX(-50%) scale(.88)!important}
+#notesBottomNav button[data-page="medical"] .bottomMascot{transform:translateX(-50%) scale(.66)!important}
+#notesBottomNav button[data-page="cycle"] .bottomMascot{transform:translateX(-50%) scale(.75)!important}
+#notesBottomNav button[data-page="more"] .bottomMascot{transform:translateX(-50%)!important}
+#notesBottomNav button .navLabel{display:block!important;line-height:1.25!important;white-space:nowrap!important;}
+</style>
 </body>
 </html>
