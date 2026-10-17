@@ -3255,5 +3255,34 @@ body:has(#medicalActions:not(.hidden)) #listTitle img.sectionMascot{
   transform-origin:center center!important;
 }
 </style>
+
+<style id="cleaning-mascot-refinement-20261017">
+/* Make the lower cleaning mascot larger and bring its label closer. */
+#cleaningPage .cleanHead h3{gap:2px!important;display:inline-flex!important;align-items:center!important}
+#cleaningPage .cleanHead h3 img{width:53px!important;height:53px!important;max-width:none!important;transform:none!important;object-fit:contain!important;margin-right:0!important;flex-shrink:0!important}
+#notesBottomNav button[data-page="more"].cleaningSelected img.bottomMascot{width:49px!important;height:47px!important;object-fit:contain!important}
+</style>
+<script id="cleaning-nav-mascot-sync-20261017">
+(function(){
+ function setup(){
+  const page=document.getElementById('cleaningPage');
+  const nav=document.querySelector('#notesBottomNav button[data-page="more"]');
+  if(!page||!nav)return;
+  const icon=nav.querySelector('img.bottomMascot');
+  if(!icon)return;
+  const original=icon.getAttribute('src');
+  function sync(){
+   const active=!page.classList.contains('hidden') && getComputedStyle(page).display!=='none';
+   const cleaningImage=page.querySelector('.cleanHead h3 img');
+   if(active&&cleaningImage){icon.src=cleaningImage.src;nav.classList.add('cleaningSelected')}
+   else{if(icon.getAttribute('src')!==original)icon.src=original;nav.classList.remove('cleaningSelected')}
+  }
+  new MutationObserver(sync).observe(page,{attributes:true,attributeFilter:['class','style'],childList:true,subtree:true});
+  document.querySelectorAll('#notesBottomNav button').forEach(b=>b.addEventListener('click',()=>requestAnimationFrame(sync)));
+  sync();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
+})();
+</script>
 </body>
 </html>
