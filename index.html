@@ -560,7 +560,19 @@ body:has(#cyclePage.show) #notesBottomNav button[data-page="cycle"]{background:#
 #notesBottomNav button .navIcon{height:48px!important;min-height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important}
 #notesBottomNav button .navIcon img.bottomMascot{width:48px!important;height:44px!important;max-width:none!important;object-fit:contain!important;object-position:center!important;transform:none!important}
 #notesBottomNav button[data-page="kitchen"] .navIcon img.bottomMascot{width:48px!important;height:44px!important}
-</style><style id="chef-reference-visual-calibration">#notesBottomNav button .navIcon{height:48px!important;min-height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important}#notesBottomNav button img.bottomMascot,#notesBottomNav button[data-page="kitchen"] img.bottomMascot{width:48px!important;height:44px!important;max-width:none!important;object-fit:contain!important;object-position:center bottom!important;transform:none!important}#notesBottomNav button{justify-content:flex-end!important;align-items:center!important;gap:4px!important}</style></head>
+</style><style id="chef-reference-visual-calibration">#notesBottomNav button .navIcon{height:48px!important;min-height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important}#notesBottomNav button img.bottomMascot,#notesBottomNav button[data-page="kitchen"] img.bottomMascot{width:48px!important;height:44px!important;max-width:none!important;object-fit:contain!important;object-position:center bottom!important;transform:none!important}#notesBottomNav button{justify-content:flex-end!important;align-items:center!important;gap:4px!important}</style><style id="mascot-user-final-alignment-20261017">
+/* 只调整导航小新，不替换或绘制图片。以厨房为基准。 */
+#notesBottomNav button .navIcon{height:54px!important;min-height:54px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important;flex:0 0 54px!important}
+#notesBottomNav button .bottomMascot{transform-origin:center center!important;object-position:center center!important;vertical-align:middle!important}
+#notesBottomNav button[data-page="shopping"] .bottomMascot{transform:translateY(3px) scale(.80)!important}
+#notesBottomNav button[data-page="life"] .bottomMascot{transform:translateY(2px) scale(.88)!important}
+#notesBottomNav button[data-page="medical"] .bottomMascot{transform:translateY(2px) scale(.80)!important}
+#notesBottomNav button[data-page="cycle"] .bottomMascot{transform:translateY(2px) scale(.82)!important}
+#notesBottomNav button[data-page="kitchen"] .bottomMascot,
+#notesBottomNav button[data-page="more"] .bottomMascot{transform:none!important}
+#notesBottomNav button{justify-content:flex-end!important;align-items:center!important;gap:3px!important}
+</style>
+</head>
 <body>
 <div class="wrap">
 <div class="header">
