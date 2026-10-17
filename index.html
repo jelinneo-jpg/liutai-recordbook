@@ -3237,9 +3237,16 @@ quick.addEventListener('click',e=>{if(e.target===quick)window.cycleQuickClose()}
 #cleaningPage .cleanHead h3 {font-size:17px!important;line-height:1.35!important;font-weight:700!important;}
 </style>
 <style id="medical-heading-balance-20261017">
-/* Only the medical section heading; navigation and content remain unchanged. */
-body:has(#medicalActions:not(.hidden)) .sectionHead #listTitle{font-size:15px!important;line-height:1.35!important;display:inline-flex;align-items:center;gap:5px}
-body:has(#medicalActions:not(.hidden)) #listTitle img.sectionMascot{width:48px!important;height:48px!important;max-width:48px!important;transform:scale(1.2)!important;transform-origin:center!important;margin-right:4px!important}
+/* Restore natural heading alignment, slightly smaller text and moderate mascot. */
+body:has(#medicalActions:not(.hidden)) .sectionHead #listTitle{
+ font-size:18px!important;line-height:1.35!important;font-weight:700!important;
+ display:inline-flex!important;align-items:center!important;gap:0!important;
+}
+body:has(#medicalActions:not(.hidden)) #listTitle img.sectionMascot{
+ width:44px!important;height:44px!important;max-width:44px!important;
+ transform:none!important;object-fit:contain!important;
+ vertical-align:middle!important;margin-right:8px!important;
+}
 </style>
 </body>
 </html>
