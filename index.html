@@ -3115,7 +3115,7 @@ document.addEventListener('DOMContentLoaded',()=>{const nav=$c('notesBottomNav')
 const modal=document.createElement('div');modal.id='cycleRecordModal';modal.className='modal';modal.setAttribute('aria-hidden','true');
 modal.innerHTML='<div class="sheet cycleModalSheet"><div class="cycleModalHeader"><b>🌸 经期与排卵记录</b><button type="button" onclick="cycleClose()">✕</button></div><div class="cycleModalBody"></div><button type="button" class="cycleCloseBottom" onclick="cycleClose()">关闭</button></div>';
 modal.addEventListener('click',e=>{if(e.target===modal)window.cycleClose()});document.body.appendChild(modal);
-const quick=document.createElement('div');quick.id='cycleQuickModal';quick.className='modal';quick.innerHTML='<div class="sheet" style="max-width:390px;margin:20vh auto"><h2>🌸 今天要记录什么？</h2><p>选择的日期：<b id="cycleQuickDate"></b></p><p style="font-size:13px;color:#8b7c6c">只记录月经开始日，系统会根据周期设置自动估算经期和排卵期。</p><div class="modalBtns"><button class="cancel" onclick="cycleQuickClose()">取消</button><button class="save" onclick="cycleQuickSave()">🌸 月经来了</button><button class="save" style="background:#f5d7e1;color:#6d3d50" onclick="cycleQuickIntimacy()">❤️ 爱爱了</button></div></div>';
+const quick=document.createElement('div');quick.id='cycleQuickModal';quick.className='modal';quick.innerHTML='<div class="sheet" style="max-width:390px;margin:20vh auto"><div class="cycleQuickHeading"><h2>🌸 今天要记录什么？</h2><button type="button" class="cycleQuickTopCancel" onclick="cycleQuickClose()">取消</button></div><p>选择的日期：<b id="cycleQuickDate"></b></p><p style="font-size:13px;color:#8b7c6c">只记录月经开始日，系统会根据周期设置自动估算经期和排卵期。</p><div class="modalBtns"><button class="save" onclick="cycleQuickSave()">🌸 月经来了</button><button class="save" style="background:#f5d7e1;color:#6d3d50" onclick="cycleQuickIntimacy()">❤️ 爱爱了</button></div></div>';
 quick.addEventListener('click',e=>{if(e.target===quick)window.cycleQuickClose()});document.body.appendChild(quick);
 const im=document.createElement('div');im.id='cycleIntimacyModal';im.className='modal';im.style.zIndex='115';im.innerHTML='<div class="sheet" style="max-width:390px;margin:18vh auto"><h2>❤️ 编辑爱爱记录</h2><div class="field"><label>日期</label><input id="cycleIntimacyDate" type="date"></div><div class="modalBtns"><button class="cancel" onclick="cycleCloseIntimacy()">取消</button><button class="save" onclick="cycleSaveIntimacy()">保存修改</button></div><button class="cycleCloseBottom" style="color:#a44940;background:#fff0ed" onclick="cycleRemoveIntimacy()">删除这条记录</button></div>';document.body.appendChild(im);render()});
 })();
@@ -3327,5 +3327,12 @@ body:has(#medicalActions:not(.hidden)) #listTitle img.sectionMascot{
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
+<style id="cycle-quick-top-cancel-20261017">
+#cycleQuickModal .cycleQuickHeading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+#cycleQuickModal .cycleQuickHeading h2{margin:0;font-size:clamp(18px,5vw,23px);min-width:0}
+#cycleQuickModal .cycleQuickTopCancel{flex:0 0 auto;border:0;background:#eee3d4;color:#655647;border-radius:11px;padding:9px 12px;font-size:14px;font-weight:700}
+#cycleQuickModal .modalBtns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#cycleQuickModal .modalBtns button{min-width:0;min-height:60px}
+</style>
 </body>
 </html>
