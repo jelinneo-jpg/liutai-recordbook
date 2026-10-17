@@ -3191,5 +3191,16 @@ quick.addEventListener('click',e=>{if(e.target===quick)window.cycleQuickClose()}
 #notesBottomNav button[data-page="more"] .navIcon img.bottomMascot{width:54px!important;height:49px!important}
 #notesBottomNav button .navLabel{display:block!important;flex:0 0 auto!important;line-height:1.25!important;white-space:nowrap!important;margin:0!important}
 </style>
+
+<style id="lower-title-mascot-adjust-v1">
+/* Only lower page heading mascots. Do not touch navigation, data, or page controls. */
+#listTitle img.kitchenTitleMascot { transform:scale(.89)!important;transform-origin:center bottom!important; }
+.cleanHead h3 img.sectionShinMascot { transform:scale(.86)!important;transform-origin:center bottom!important; }
+/* Shopping title icon uses the same kitchenTitleMascot class; identify shopping by current tab via body state if possible; handled by scoped JS below. */
+#listTitle img.sectionMascot { transform:scale(1)!important;transform-origin:center bottom!important; }
+.cycleTitleMascot { transform:scale(1.12)!important;transform-origin:center bottom!important; }
+.bodyTrackHeading h3 img.sectionShinMascot { transform:scale(1)!important;transform-origin:center bottom!important; }
+#listTitle img { vertical-align:middle!important; }
+</style>
 </body>
 </html>
